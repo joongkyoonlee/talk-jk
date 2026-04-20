@@ -40,7 +40,7 @@ export function formatKoDate(iso: string) {
   }
 }
 
-const ANON_NAMES = ["800", "400", "100", "	800", "900", "	900", "300", "200", "	700", "400", "100", "300", "200", "800", "600"];
+const ANON_NAMES = ["Starlight", "Galaxy", "Cloud", "Breeze", "Moonbeam", "Sky", "Forest", "Wave", "Sand", "Spring", "Summer", "Autumn", "Winter", "Aurora", "Twilight"];
 
 export function newAnonymousName() {
   const base = ANON_NAMES[Math.floor(Math.random() * ANON_NAMES.length)];
