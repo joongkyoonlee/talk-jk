@@ -39,3 +39,11 @@ export function formatKoDate(iso: string) {
     return iso;
   }
 }
+
+const ANON_NAMES = ["800", "400", "100", "	800", "900", "	900", "300", "200", "	700", "400", "100", "300", "200", "800", "600"];
+
+export function newAnonymousName() {
+  const base = ANON_NAMES[Math.floor(Math.random() * ANON_NAMES.length)];
+  const suffix = Math.floor(Math.random() * 100);
+  return `${base} ${suffix}`;
+}
