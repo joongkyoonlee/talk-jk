@@ -5,7 +5,7 @@ export type Role = "instructor" | "student";
 export interface RoomSession {
   roomId: string;
   passcode: string;
-  nickname: string;
+  nickname?: string;
   role: Role;
   clientId: string;
 }
@@ -38,4 +38,12 @@ export function formatKoDate(iso: string) {
   } catch {
     return iso;
   }
+}
+
+const ANON_NAMES = ["Starlight", "Galaxy", "Cloud", "Breeze", "Moonbeam", "Sky", "Forest", "Wave", "Sand", "Spring", "Summer", "Autumn", "Winter", "Aurora", "Twilight"];
+
+export function newAnonymousName() {
+  const base = ANON_NAMES[Math.floor(Math.random() * ANON_NAMES.length)];
+  const suffix = Math.floor(Math.random() * 100);
+  return `${base} ${suffix}`;
 }
