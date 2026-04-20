@@ -14,7 +14,224 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      messages: {
+        Row: {
+          body: string | null
+          client_id: string | null
+          created_at: string
+          id: string
+          image_url: string | null
+          is_system: boolean
+          message_type: string
+          nickname: string
+          role: string
+          room_id: string
+        }
+        Insert: {
+          body?: string | null
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_system?: boolean
+          message_type?: string
+          nickname: string
+          role?: string
+          room_id: string
+        }
+        Update: {
+          body?: string | null
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_system?: boolean
+          message_type?: string
+          nickname?: string
+          role?: string
+          room_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      opinions: {
+        Row: {
+          body: string
+          category: string | null
+          client_id: string | null
+          created_at: string
+          id: string
+          nickname: string | null
+          role: string
+          room_id: string
+        }
+        Insert: {
+          body: string
+          category?: string | null
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          nickname?: string | null
+          role?: string
+          room_id: string
+        }
+        Update: {
+          body?: string
+          category?: string | null
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          nickname?: string | null
+          role?: string
+          room_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opinions_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      poll_options: {
+        Row: {
+          created_at: string
+          id: string
+          option_text: string
+          poll_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          option_text: string
+          poll_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          option_text?: string
+          poll_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "poll_options_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "polls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      poll_votes: {
+        Row: {
+          created_at: string
+          id: string
+          poll_id: string
+          poll_option_id: string
+          voter_client_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          poll_id: string
+          poll_option_id: string
+          voter_client_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          poll_id?: string
+          poll_option_id?: string
+          voter_client_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "poll_votes_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "polls"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "poll_votes_poll_option_id_fkey"
+            columns: ["poll_option_id"]
+            isOneToOne: false
+            referencedRelation: "poll_options"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      polls: {
+        Row: {
+          created_at: string
+          id: string
+          is_closed: boolean
+          question: string
+          room_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_closed?: boolean
+          question: string
+          room_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_closed?: boolean
+          question?: string
+          room_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "polls_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rooms: {
+        Row: {
+          created_at: string
+          host_nickname: string
+          id: string
+          notice: string | null
+          passcode: string
+          room_name: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          host_nickname: string
+          id?: string
+          notice?: string | null
+          passcode: string
+          room_name: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          host_nickname?: string
+          id?: string
+          notice?: string | null
+          passcode?: string
+          room_name?: string
+          title?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
