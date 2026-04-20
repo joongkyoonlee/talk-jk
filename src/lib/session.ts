@@ -5,7 +5,7 @@ export type Role = "instructor" | "student";
 export interface RoomSession {
   roomId: string;
   passcode: string;
-  nickname: string;
+  nickname?: string;
   role: Role;
   clientId: string;
 }
