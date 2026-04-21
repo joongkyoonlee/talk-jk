@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut, MessageSquare, Lightbulb, BarChart3, Users, Trash2 } from "lucide-react";
+import { LogOut, MessageSquare, Lightbulb, BarChart3, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { loadSession, saveSession, type RoomSession } from "@/lib/session";
 import { toast } from "@/hooks/use-toast";
