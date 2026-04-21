@@ -234,8 +234,9 @@ export default function MessagesTab({ room, messages, session, isInstructor }: P
               <Textarea
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
+                onPaste={handlePaste}
                 rows={6}
-                placeholder="수강생에게 전달할 메시지를 입력하세요"
+                placeholder="수강생에게 전달할 메시지를 입력하세요 (Ctrl/Cmd+V로 캡쳐 이미지 붙여넣기 가능)"
                 className="rounded-2xl"
               />
               <div>
