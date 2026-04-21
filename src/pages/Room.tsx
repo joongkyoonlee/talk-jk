@@ -229,6 +229,31 @@ const RoomPage = () => {
     navigate("/", { replace: true });
   };
 
+  const handleDeleteRoom = async () => {
+    if (!room) return;
+    const roomId = room.id;
+    const { data: pollRows } = await supabase.from("polls").select("id").eq("room_id", roomId);
+    const pollIds = (pollRows || []).map((p) => p.id);
+    if (pollIds.length) {
+      await supabase.from("poll_votes").delete().in("poll_id", pollIds);
+      await supabase.from("poll_options").delete().in("poll_id", pollIds);
+    }
+    await Promise.all([
+      supabase.from("polls").delete().eq("room_id", roomId),
+      supabase.from("messages").delete().eq("room_id", roomId),
+      supabase.from("opinions").delete().eq("room_id", roomId),
+    ]);
+    const { error } = await supabase.from("rooms").delete().eq("id", roomId);
+    if (error) {
+      toast({ title: "방 삭제 실패", description: error.message });
+      return;
+    }
+    toast({ title: "방이 삭제되었습니다." });
+    saveSession(null);
+    setSession(null);
+    navigate("/", { replace: true });
+  };
+
   const tabContent = useMemo(() => {
     if (!session || !room) return null;
     if (tab === "messages")
