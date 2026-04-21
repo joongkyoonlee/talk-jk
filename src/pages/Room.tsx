@@ -307,6 +307,32 @@ const RoomPage = () => {
               <button onClick={handleLeave} className="pill-outline !px-4 !py-2 text-sm">
                 <LogOut className="h-4 w-4" /> 나가기
               </button>
+              {isInstructor && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <button className="pill-outline !px-4 !py-2 text-sm !border-destructive !text-destructive hover:!bg-destructive/10">
+                      <Trash2 className="h-4 w-4" /> 삭제하기
+                    </button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>소통방을 삭제하시겠습니까?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        이 작업은 되돌릴 수 없습니다. 모든 메시지, 의견, 투표 데이터가 영구적으로 삭제됩니다.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>취소</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleDeleteRoom}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        삭제
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
             </div>
           </div>
         </div>
