@@ -97,7 +97,7 @@ const Index = () => {
             <a href="#join" className="hover:text-foreground transition">입장하기</a>
             <a href="#features" className="hover:text-foreground transition">기능</a>
           </nav>
-          <a href="#create" className="pill-dark hidden sm:inline-flex">소통방 만들기 <ArrowRight className="ml-1" /></a>
+          <a href="#create" className="pill-dark hidden sm:inline-flex">소통방 만들기 <Sparkles className="ml-1" /></a>
         </div>
       </header>
 
