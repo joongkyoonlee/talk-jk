@@ -114,7 +114,7 @@ const Index = () => {
         </p>
         <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
           <a href="#create" className="pill-dark">소통방 만들기 <Sparkles /></a>
-          <a href="#join" className="pill-outline">입장하기 <KeyRound /></a>
+          <a href="#join" className="pill-dark">입장하기 <ArrowRight className="ml-1" /></a>
         </div>
       </section>
 
