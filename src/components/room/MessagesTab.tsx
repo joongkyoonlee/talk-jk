@@ -35,20 +35,43 @@ export default function MessagesTab({ room, messages, session, isInstructor }: P
     listEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages.length]);
 
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const f = e.target.files?.[0];
-    if (!f) return setFile(null);
+  function acceptFile(f: File): boolean {
     if (!IMAGE_TYPES.includes(f.type)) {
       toast({ title: "지원하지 않는 이미지 형식입니다." });
-      e.target.value = "";
-      return;
+      return false;
     }
     if (f.size > MAX_IMAGE_SIZE) {
       toast({ title: "이미지가 20MB를 초과합니다." });
-      e.target.value = "";
-      return;
+      return false;
     }
     setFile(f);
+    return true;
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0];
+    if (!f) return setFile(null);
+    if (!acceptFile(f)) {
+      e.target.value = "";
+    }
+  }
+
+  function handlePaste(e: React.ClipboardEvent<HTMLTextAreaElement>) {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (const item of Array.from(items)) {
+      if (item.kind === "file" && item.type.startsWith("image/")) {
+        const blob = item.getAsFile();
+        if (!blob) continue;
+        const ext = blob.type.split("/")[1] || "png";
+        const pasted = new File([blob], `pasted_${Date.now()}.${ext}`, { type: blob.type });
+        if (acceptFile(pasted)) {
+          e.preventDefault();
+          toast({ title: "붙여넣은 이미지가 첨부되었습니다." });
+        }
+        break;
+      }
+    }
   }
 
   async function uploadImage(f: File): Promise<string | null> {
@@ -211,8 +234,9 @@ export default function MessagesTab({ room, messages, session, isInstructor }: P
               <Textarea
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
+                onPaste={handlePaste}
                 rows={6}
-                placeholder="수강생에게 전달할 메시지를 입력하세요"
+                placeholder="수강생에게 전달할 메시지를 입력하세요 (Ctrl/Cmd+V로 캡쳐 이미지 붙여넣기 가능)"
                 className="rounded-2xl"
               />
               <div>
