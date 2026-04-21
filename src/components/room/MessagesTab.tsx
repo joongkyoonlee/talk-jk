@@ -7,6 +7,7 @@ import type { MessageRow, Room } from "@/pages/Room";
 import type { RoomSession } from "@/lib/session";
 import { formatKoDate } from "@/lib/session";
 import { toast } from "@/hooks/use-toast";
+import { linkify } from "@/lib/linkify";
 
 const MAX_IMAGE_SIZE = 20 * 1024 * 1024;
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
@@ -191,7 +192,11 @@ export default function MessagesTab({ room, messages, session, isInstructor }: P
                       </div>
                       <span className="text-xs text-muted-foreground">{formatKoDate(m.created_at)}</span>
                     </div>
-                    {m.body && <p className="mt-3 text-sm whitespace-pre-wrap leading-relaxed">{m.body}</p>}
+                    {m.body && (
+                      <p className="mt-3 text-sm whitespace-pre-wrap leading-relaxed break-words">
+                        {linkify(m.body)}
+                      </p>
+                    )}
                     {m.image_url && (
                       <img
                         src={m.image_url}
