@@ -191,7 +191,11 @@ export default function MessagesTab({ room, messages, session, isInstructor }: P
                       </div>
                       <span className="text-xs text-muted-foreground">{formatKoDate(m.created_at)}</span>
                     </div>
-                    {m.body && <p className="mt-3 text-sm whitespace-pre-wrap leading-relaxed">{m.body}</p>}
+                    {m.body && (
+                      <p className="mt-3 text-sm whitespace-pre-wrap leading-relaxed break-words">
+                        {linkify(m.body)}
+                      </p>
+                    )}
                     {m.image_url && (
                       <img
                         src={m.image_url}
