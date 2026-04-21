@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { OpinionRow } from "@/pages/Room";
 import { formatKoDate, type RoomSession } from "@/lib/session";
 import { toast } from "@/hooks/use-toast";
+import { linkify } from "@/lib/linkify";
 
 const CATEGORIES = ["질문", "건의", "느낀점"] as const;
 
@@ -98,7 +99,7 @@ export default function OpinionsTab({
                   </span>
                   <span className="text-xs text-muted-foreground">{formatKoDate(o.created_at)}</span>
                 </div>
-                <p className="mt-3 text-sm whitespace-pre-wrap leading-relaxed">{o.body}</p>
+                <p className="mt-3 text-sm whitespace-pre-wrap leading-relaxed break-words">{linkify(o.body)}</p>
                 {o.nickname && (
                   <p className="mt-3 text-xs text-muted-foreground">— {o.nickname}</p>
                 )}

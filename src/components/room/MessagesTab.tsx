@@ -7,6 +7,7 @@ import type { MessageRow, Room } from "@/pages/Room";
 import type { RoomSession } from "@/lib/session";
 import { formatKoDate } from "@/lib/session";
 import { toast } from "@/hooks/use-toast";
+import { linkify } from "@/lib/linkify";
 
 const MAX_IMAGE_SIZE = 20 * 1024 * 1024;
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
