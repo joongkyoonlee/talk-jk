@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut, MessageSquare, Lightbulb, BarChart3, Users } from "lucide-react";
+import { LogOut, MessageSquare, Lightbulb, BarChart3, Users, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { loadSession, saveSession, type RoomSession } from "@/lib/session";
 import { toast } from "@/hooks/use-toast";
@@ -8,6 +8,17 @@ import MessagesTab from "@/components/room/MessagesTab";
 import OpinionsTab from "@/components/room/OpinionsTab";
 import PollsTab from "@/components/room/PollsTab";
 import ParticipantsTab from "@/components/room/ParticipantsTab";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export type Room = {
   id: string;
@@ -218,6 +229,31 @@ const RoomPage = () => {
     navigate("/", { replace: true });
   };
 
+  const handleDeleteRoom = async () => {
+    if (!room) return;
+    const roomId = room.id;
+    const { data: pollRows } = await supabase.from("polls").select("id").eq("room_id", roomId);
+    const pollIds = (pollRows || []).map((p) => p.id);
+    if (pollIds.length) {
+      await supabase.from("poll_votes").delete().in("poll_id", pollIds);
+      await supabase.from("poll_options").delete().in("poll_id", pollIds);
+    }
+    await Promise.all([
+      supabase.from("polls").delete().eq("room_id", roomId),
+      supabase.from("messages").delete().eq("room_id", roomId),
+      supabase.from("opinions").delete().eq("room_id", roomId),
+    ]);
+    const { error } = await supabase.from("rooms").delete().eq("id", roomId);
+    if (error) {
+      toast({ title: "방 삭제 실패", description: error.message });
+      return;
+    }
+    toast({ title: "방이 삭제되었습니다." });
+    saveSession(null);
+    setSession(null);
+    navigate("/", { replace: true });
+  };
+
   const tabContent = useMemo(() => {
     if (!session || !room) return null;
     if (tab === "messages")
@@ -271,6 +307,32 @@ const RoomPage = () => {
               <button onClick={handleLeave} className="pill-outline !px-4 !py-2 text-sm">
                 <LogOut className="h-4 w-4" /> 나가기
               </button>
+              {isInstructor && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <button className="pill-outline !px-4 !py-2 text-sm !border-destructive !text-destructive hover:!bg-destructive/10">
+                      <Trash2 className="h-4 w-4" /> 삭제하기
+                    </button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>소통방을 삭제하시겠습니까?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        이 작업은 되돌릴 수 없습니다. 모든 메시지, 의견, 투표 데이터가 영구적으로 삭제됩니다.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>취소</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleDeleteRoom}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        삭제
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
             </div>
           </div>
         </div>
