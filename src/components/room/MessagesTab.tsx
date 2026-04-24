@@ -137,7 +137,7 @@ export default function MessagesTab({ room, messages, session, isInstructor }: P
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
+    <div className="grid gap-6 lg:grid-cols-[1fr_380px] lg:items-end">
       {/* Left: notice + messages */}
       <div className="space-y-4">
         {room.notice && (
