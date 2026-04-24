@@ -218,6 +218,23 @@ export default function MessagesTab({ room, messages, session, isInstructor }: P
       <aside className="space-y-4">
         {isInstructor ? (
           <>
+            <form onSubmit={handleNoticeSave} className="surface-card p-6 space-y-3">
+              <div className="flex items-center gap-2">
+                <Pin className="h-4 w-4 text-accent" />
+                <h3 className="font-serif text-xl">공지 고정</h3>
+              </div>
+              <Textarea
+                value={noticeDraft}
+                onChange={(e) => setNoticeDraft(e.target.value)}
+                rows={4}
+                placeholder="상단에 고정할 공지"
+                className="rounded-2xl"
+              />
+              <button disabled={savingNotice} className="pill-outline w-full disabled:opacity-60">
+                {savingNotice ? "저장 중..." : "공지 저장"}
+              </button>
+            </form>
+
             <form onSubmit={handleSend} className="surface-card p-6 space-y-4">
               <h3 className="font-serif text-xl">강사 메시지 올리기</h3>
               <div className="grid grid-cols-2 gap-2">
@@ -276,23 +293,6 @@ export default function MessagesTab({ room, messages, session, isInstructor }: P
               </div>
               <button disabled={sending} className="pill-dark w-full disabled:opacity-60">
                 {sending ? "전송 중..." : "메시지 전송"} <Send className="h-4 w-4" />
-              </button>
-            </form>
-
-            <form onSubmit={handleNoticeSave} className="surface-card p-6 space-y-3">
-              <div className="flex items-center gap-2">
-                <Pin className="h-4 w-4 text-accent" />
-                <h3 className="font-serif text-xl">공지 고정</h3>
-              </div>
-              <Textarea
-                value={noticeDraft}
-                onChange={(e) => setNoticeDraft(e.target.value)}
-                rows={4}
-                placeholder="상단에 고정할 공지"
-                className="rounded-2xl"
-              />
-              <button disabled={savingNotice} className="pill-outline w-full disabled:opacity-60">
-                {savingNotice ? "저장 중..." : "공지 저장"}
               </button>
             </form>
           </>
