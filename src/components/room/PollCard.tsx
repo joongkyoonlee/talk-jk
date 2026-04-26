@@ -119,7 +119,7 @@ export default function PollCard({ poll, session, isInstructor, compact }: Props
           const c = counts[opt.id] || 0;
           const pct = participants ? Math.round((c / participants) * 100) : 0;
           const isMyChoice = myVote?.poll_option_id === opt.id;
-          const disabled = poll.is_closed || voted || voting;
+          const disabled = poll.is_closed || voting || isMyChoice;
           const tone = palette[idx % palette.length];
           const Icon = tone.icon;
           return (
