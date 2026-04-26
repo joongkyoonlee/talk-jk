@@ -1,7 +1,14 @@
 import { useEffect, useRef, useState } from "react";
-import { Image as ImageIcon, Pin, Send, X } from "lucide-react";
+import { Image as ImageIcon, Pin, Send, X, Megaphone } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import type { MessageRow, Room } from "@/pages/Room";
 import type { RoomSession } from "@/lib/session";
@@ -20,15 +27,17 @@ interface Props {
 }
 
 export default function MessagesTab({ room, messages, session, isInstructor }: Props) {
-  const [messageType, setMessageType] = useState<"announcement" | "general">(
-    isInstructor ? "announcement" : "general",
-  );
   const [body, setBody] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [sending, setSending] = useState(false);
-  const [savingNotice, setSavingNotice] = useState(false);
+
+  // 공지 (강사 전용 다이얼로그)
+  const [noticeOpen, setNoticeOpen] = useState(false);
   const [noticeDraft, setNoticeDraft] = useState(room.notice || "");
+  const [savingNotice, setSavingNotice] = useState(false);
+
   const listEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     setNoticeDraft(room.notice || "");
@@ -92,12 +101,9 @@ export default function MessagesTab({ room, messages, session, isInstructor }: P
     return data.publicUrl;
   }
 
-  async function handleSend(e: React.FormEvent) {
-    e.preventDefault();
-    if (!body.trim() && !file) {
-      toast({ title: "메시지 또는 이미지를 입력하세요." });
-      return;
-    }
+  async function handleSend(e?: React.FormEvent) {
+    e?.preventDefault();
+    if (!body.trim() && !file) return;
     setSending(true);
     let image_url: string | null = null;
     if (file) {
@@ -113,7 +119,7 @@ export default function MessagesTab({ room, messages, session, isInstructor }: P
       role: session.role,
       client_id: session.clientId,
       body: body.trim() || null,
-      message_type: messageType,
+      message_type: "general",
       image_url,
       is_system: false,
     });
@@ -126,157 +132,279 @@ export default function MessagesTab({ room, messages, session, isInstructor }: P
     setFile(null);
     const fileInput = document.getElementById("msg-image") as HTMLInputElement | null;
     if (fileInput) fileInput.value = "";
-    toast({ title: "메시지를 전송했습니다." });
+    textareaRef.current?.focus();
   }
 
-  async function handleNoticeSave(e: React.FormEvent) {
-    e.preventDefault();
+  function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+      e.preventDefault();
+      handleSend();
+    }
+  }
+
+  async function handleNoticeSave() {
     setSavingNotice(true);
     const { error } = await supabase.from("rooms").update({ notice: noticeDraft }).eq("id", room.id);
     setSavingNotice(false);
     if (error) return toast({ title: "공지 저장 실패", description: error.message });
     toast({ title: "공지를 저장했습니다." });
+    setNoticeOpen(false);
+  }
+
+  async function handleNoticeClear() {
+    setSavingNotice(true);
+    const { error } = await supabase.from("rooms").update({ notice: "" }).eq("id", room.id);
+    setSavingNotice(false);
+    if (error) return toast({ title: "공지 삭제 실패", description: error.message });
+    setNoticeDraft("");
+    toast({ title: "공지를 삭제했습니다." });
+    setNoticeOpen(false);
+  }
+
+  async function handlePostAnnouncement() {
+    const text = noticeDraft.trim();
+    if (!text) {
+      toast({ title: "공지 내용을 입력하세요." });
+      return;
+    }
+    setSavingNotice(true);
+    const { error } = await supabase.from("messages").insert({
+      room_id: room.id,
+      nickname: session.nickname,
+      role: session.role,
+      client_id: session.clientId,
+      body: text,
+      message_type: "announcement",
+      is_system: false,
+    });
+    setSavingNotice(false);
+    if (error) return toast({ title: "공지 발송 실패", description: error.message });
+    toast({ title: "공지를 메시지로 발송했습니다." });
   }
 
   return (
-    <div className="space-y-6 max-w-3xl mx-auto">
-      {/* Top: notice + messages */}
-      <div className="space-y-4">
+    <div className="max-w-3xl mx-auto">
+      <div className="surface-card overflow-hidden flex flex-col h-[calc(100vh-220px)] min-h-[520px]">
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-3 border-b border-border/60 bg-background/80 backdrop-blur">
+          <div className="flex items-center gap-2">
+            <h3 className="font-serif text-lg">실시간 메시지</h3>
+            <span className="text-xs text-muted-foreground">· {messages.length}건</span>
+          </div>
+          {isInstructor && (
+            <Dialog open={noticeOpen} onOpenChange={setNoticeOpen}>
+              <DialogTrigger asChild>
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-gold-soft/20 px-3 py-1.5 text-xs font-medium text-accent-foreground hover:bg-gold-soft/40 transition"
+                >
+                  <Megaphone className="h-3.5 w-3.5" />
+                  공지 관리
+                </button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-lg">
+                <DialogHeader>
+                  <DialogTitle className="font-serif flex items-center gap-2">
+                    <Pin className="h-4 w-4 text-accent" /> 공지사항 관리
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="space-y-3">
+                  <p className="text-xs text-muted-foreground">
+                    상단에 고정으로 노출되며, 원하시면 메시지로도 발송할 수 있습니다. 공지는 강사만 작성할 수 있습니다.
+                  </p>
+                  <Textarea
+                    value={noticeDraft}
+                    onChange={(e) => setNoticeDraft(e.target.value)}
+                    rows={5}
+                    placeholder="공지 내용을 입력하세요"
+                    className="rounded-2xl"
+                  />
+                </div>
+                <DialogFooter className="flex-col sm:flex-row gap-2">
+                  {room.notice && (
+                    <button
+                      type="button"
+                      disabled={savingNotice}
+                      onClick={handleNoticeClear}
+                      className="rounded-full border border-destructive/40 px-4 py-2 text-sm text-destructive hover:bg-destructive/10 transition disabled:opacity-60"
+                    >
+                      공지 삭제
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    disabled={savingNotice}
+                    onClick={handlePostAnnouncement}
+                    className="pill-outline !py-2 !px-4 text-sm disabled:opacity-60"
+                  >
+                    <Megaphone className="h-3.5 w-3.5" /> 메시지로 발송
+                  </button>
+                  <button
+                    type="button"
+                    disabled={savingNotice}
+                    onClick={handleNoticeSave}
+                    className="pill-dark !py-2 !px-4 text-sm disabled:opacity-60"
+                  >
+                    {savingNotice ? "저장 중..." : "고정 저장"}
+                  </button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          )}
+        </div>
+
+        {/* Pinned notice (everyone sees if exists) */}
         {room.notice && (
-          <div className="surface-card p-6 bg-gradient-to-br from-gold-soft/30 to-ivory-deep/40 border-gold/30">
-            <div className="flex items-center gap-2">
-              <Pin className="h-4 w-4 text-accent" />
-              <p className="eyebrow">PINNED · 공지</p>
+          <div className="px-5 pt-4">
+            <div className="rounded-2xl border border-accent/30 bg-gradient-to-br from-gold-soft/25 to-ivory-deep/30 p-4">
+              <div className="flex items-center gap-2">
+                <Pin className="h-3.5 w-3.5 text-accent" />
+                <p className="eyebrow">PINNED · 공지</p>
+              </div>
+              <p className="font-serif text-base mt-2 whitespace-pre-wrap leading-relaxed">
+                {room.notice}
+              </p>
             </div>
-            <p className="font-serif text-lg mt-3 whitespace-pre-wrap leading-relaxed">{room.notice}</p>
           </div>
         )}
 
-        <div className="surface-card p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-serif text-xl">실시간 메시지</h3>
-            <span className="text-xs text-muted-foreground">{messages.length}건</span>
-          </div>
+        {/* Messages list */}
+        <div className="flex-1 overflow-y-auto px-5 py-5 space-y-3">
           {messages.length === 0 ? (
-            <div className="text-center text-muted-foreground py-12 text-sm">아직 올라온 메시지가 없습니다.</div>
+            <div className="text-center text-muted-foreground py-12 text-sm">
+              아직 올라온 메시지가 없습니다.
+            </div>
           ) : (
-            <div className="space-y-4">
+            <>
               {messages.map((m) => {
+                const isMine = m.client_id && m.client_id === session.clientId;
                 const isAnnouncement = m.message_type === "announcement";
                 const isReply = m.message_type === "opinion_reply";
+                const isInstructorMsg = m.role === "instructor";
+
+                // 공지는 가로 전체 카드
+                if (isAnnouncement) {
+                  return (
+                    <div
+                      key={m.id}
+                      className="rounded-2xl border border-accent/40 bg-gold-soft/20 p-4"
+                    >
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <div className="flex items-center gap-2">
+                          <Megaphone className="h-4 w-4 text-accent" />
+                          <span className="font-serif font-medium">{m.nickname}</span>
+                          <span className="text-[10px] uppercase tracking-wider rounded-full px-2 py-0.5 bg-accent text-accent-foreground">
+                            공지
+                          </span>
+                        </div>
+                        <span className="text-xs text-muted-foreground">
+                          {formatKoDate(m.created_at)}
+                        </span>
+                      </div>
+                      {m.body && (
+                        <p className="mt-2 text-sm whitespace-pre-wrap leading-relaxed break-words">
+                          {linkify(m.body)}
+                        </p>
+                      )}
+                      {m.image_url && (
+                        <img
+                          src={m.image_url}
+                          alt="첨부 이미지"
+                          className="mt-3 rounded-xl max-h-80 w-auto"
+                          loading="lazy"
+                        />
+                      )}
+                    </div>
+                  );
+                }
+
+                // 일반/의견답변 — 채팅 버블
                 return (
                   <div
                     key={m.id}
-                    className={`rounded-2xl border p-4 ${
-                      isAnnouncement
-                        ? "border-accent/40 bg-gold-soft/15"
-                        : isReply
-                          ? "border-accent/30 bg-muted/40"
-                          : "border-border bg-background"
-                    }`}
+                    className={`flex gap-2 ${isMine ? "justify-end" : "justify-start"}`}
                   >
-                    <div className="flex items-start justify-between gap-3 flex-wrap">
-                      <div className="flex items-center gap-2">
-                        <span className="font-serif font-medium">
-                          {m.nickname || (m.is_system ? "시스템" : "사용자")}
+                    <div className={`max-w-[78%] ${isMine ? "items-end" : "items-start"} flex flex-col`}>
+                      <div className="flex items-center gap-1.5 mb-1 px-1">
+                        <span className="text-xs font-medium font-serif">
+                          {m.nickname || "사용자"}
                         </span>
-                        <span
-                          className={`text-[10px] uppercase tracking-wider rounded-full px-2 py-0.5 ${
-                            isAnnouncement
-                              ? "bg-accent text-accent-foreground"
-                              : isReply
-                                ? "bg-foreground/10 text-foreground"
-                                : "bg-muted text-muted-foreground"
-                          }`}
-                        >
-                          {isAnnouncement ? "공지" : isReply ? "의견답변" : "메시지"}
-                        </span>
+                        {isInstructorMsg && (
+                          <span className="text-[9px] uppercase tracking-wider rounded-full px-1.5 py-0.5 bg-accent/20 text-accent-foreground">
+                            강사
+                          </span>
+                        )}
+                        {isReply && (
+                          <span className="text-[9px] uppercase tracking-wider rounded-full px-1.5 py-0.5 bg-foreground/10 text-foreground">
+                            의견답변
+                          </span>
+                        )}
                       </div>
-                      <span className="text-xs text-muted-foreground">{formatKoDate(m.created_at)}</span>
+                      <div
+                        className={`rounded-2xl px-4 py-2.5 shadow-sm ${
+                          isMine
+                            ? "bg-primary text-primary-foreground rounded-br-md"
+                            : isInstructorMsg
+                              ? "bg-gold-soft/30 text-foreground border border-accent/20 rounded-bl-md"
+                              : "bg-card text-foreground border border-border rounded-bl-md"
+                        }`}
+                      >
+                        {m.body && (
+                          <p className="text-sm whitespace-pre-wrap leading-relaxed break-words">
+                            {linkify(m.body)}
+                          </p>
+                        )}
+                        {m.image_url && (
+                          <img
+                            src={m.image_url}
+                            alt="첨부 이미지"
+                            className={`rounded-xl max-h-72 w-auto ${m.body ? "mt-2" : ""}`}
+                            loading="lazy"
+                          />
+                        )}
+                      </div>
+                      <span className="text-[10px] text-muted-foreground mt-1 px-1">
+                        {formatKoDate(m.created_at)}
+                      </span>
                     </div>
-                    {m.body && (
-                      <p className="mt-3 text-sm whitespace-pre-wrap leading-relaxed break-words">
-                        {linkify(m.body)}
-                      </p>
-                    )}
-                    {m.image_url && (
-                      <img
-                        src={m.image_url}
-                        alt="강사가 업로드한 이미지"
-                        className="mt-3 rounded-xl max-h-80 w-auto"
-                        loading="lazy"
-                      />
-                    )}
                   </div>
                 );
               })}
               <div ref={listEndRef} />
-            </div>
+            </>
           )}
         </div>
-      </div>
 
-      {/* Bottom: composer */}
-      <aside className="space-y-4">
-        {isInstructor && (
-          <form onSubmit={handleNoticeSave} className="surface-card p-6 space-y-3">
-            <div className="flex items-center gap-2">
-              <Pin className="h-4 w-4 text-accent" />
-              <h3 className="font-serif text-xl">공지 고정</h3>
-            </div>
-            <Textarea
-              value={noticeDraft}
-              onChange={(e) => setNoticeDraft(e.target.value)}
-              rows={4}
-              placeholder="상단에 고정할 공지"
-              className="rounded-2xl"
-            />
-            <button disabled={savingNotice} className="pill-outline w-full disabled:opacity-60">
-              {savingNotice ? "저장 중..." : "공지 저장"}
-            </button>
-          </form>
-        )}
-
-        <form onSubmit={handleSend} className="surface-card p-6 space-y-4">
-          <h3 className="font-serif text-xl">
-            {isInstructor ? "강사 메시지 올리기" : "메시지 올리기"}
-          </h3>
-          {isInstructor && (
-            <div className="grid grid-cols-2 gap-2">
-              {(["announcement", "general"] as const).map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => setMessageType(t)}
-                  className={`rounded-full border px-3 py-2 text-sm transition ${
-                    messageType === t
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-background border-border text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {t === "announcement" ? "공지" : "일반"}
-                </button>
-              ))}
+        {/* Composer — chat bar */}
+        <form
+          onSubmit={handleSend}
+          className="border-t border-border/60 bg-background/80 backdrop-blur px-3 py-3"
+        >
+          {file && (
+            <div className="mx-1 mb-2 inline-flex items-center gap-2 text-xs text-muted-foreground bg-muted/60 rounded-full px-3 py-1.5 max-w-full">
+              <ImageIcon className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate">{file.name}</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setFile(null);
+                  const el = document.getElementById("msg-image") as HTMLInputElement | null;
+                  if (el) el.value = "";
+                }}
+                className="text-muted-foreground hover:text-foreground shrink-0"
+              >
+                <X className="h-3 w-3" />
+              </button>
             </div>
           )}
-          <Textarea
-            value={body}
-            onChange={(e) => setBody(e.target.value)}
-            onPaste={handlePaste}
-            rows={6}
-            placeholder={
-              isInstructor
-                ? "수강생에게 전달할 메시지를 입력하세요 (Ctrl/Cmd+V로 캡쳐 이미지 붙여넣기 가능)"
-                : "함께 나눌 메시지를 입력하세요 (Ctrl/Cmd+V로 캡쳐 이미지 붙여넣기 가능)"
-            }
-            className="rounded-2xl"
-          />
-          <div>
-            <Label htmlFor="msg-image" className="flex items-center gap-2 cursor-pointer">
-              <span className="inline-flex items-center gap-2 rounded-full border border-dashed border-border px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:border-foreground/40 transition">
-                <ImageIcon className="h-4 w-4" /> 이미지 선택 (최대 20MB)
-              </span>
-            </Label>
+          <div className="flex items-end gap-2">
+            <label
+              htmlFor="msg-image"
+              className="shrink-0 inline-flex h-10 w-10 items-center justify-center rounded-full border border-border text-muted-foreground hover:text-foreground hover:border-foreground/40 transition cursor-pointer"
+              title="이미지 첨부"
+            >
+              <ImageIcon className="h-4 w-4" />
+            </label>
             <input
               id="msg-image"
               type="file"
@@ -284,28 +412,27 @@ export default function MessagesTab({ room, messages, session, isInstructor }: P
               className="sr-only"
               onChange={handleFileChange}
             />
-            {file && (
-              <div className="mt-2 flex items-center justify-between gap-2 text-xs text-muted-foreground bg-muted/50 rounded-lg px-3 py-2">
-                <span className="truncate">{file.name}</span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setFile(null);
-                    const el = document.getElementById("msg-image") as HTMLInputElement | null;
-                    if (el) el.value = "";
-                  }}
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </div>
-            )}
+            <Textarea
+              ref={textareaRef}
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              onPaste={handlePaste}
+              onKeyDown={handleKeyDown}
+              rows={1}
+              placeholder="메시지를 입력하세요 (Enter 전송, Shift+Enter 줄바꿈, Ctrl/Cmd+V 이미지 붙여넣기)"
+              className="flex-1 resize-none rounded-2xl min-h-[44px] max-h-32 py-2.5"
+            />
+            <button
+              type="submit"
+              disabled={sending || (!body.trim() && !file)}
+              className="shrink-0 inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-pill hover:opacity-90 transition disabled:opacity-40 disabled:cursor-not-allowed"
+              title="전송"
+            >
+              <Send className="h-4 w-4" />
+            </button>
           </div>
-          <button disabled={sending} className="pill-dark w-full disabled:opacity-60">
-            {sending ? "전송 중..." : "메시지 전송"} <Send className="h-4 w-4" />
-          </button>
         </form>
-      </aside>
+      </div>
     </div>
   );
 }
