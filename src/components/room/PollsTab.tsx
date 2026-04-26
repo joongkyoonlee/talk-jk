@@ -256,9 +256,14 @@ export default function PollsTab({ polls, session, isInstructor, roomId }: Props
                     </div>
                     {isInstructor && (
                       <div className="flex items-center gap-2">
-                        <button onClick={() => toggleClose(p)} className="pill-outline !py-2 !px-3 text-xs">
+                        <button
+                          onClick={() => toggleClose(p)}
+                          className={`pill-outline !py-2 !px-3 text-xs ${
+                            !p.is_closed ? "border-destructive/40 text-destructive hover:bg-destructive/10" : ""
+                          }`}
+                        >
                           {p.is_closed ? <Unlock className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
-                          {p.is_closed ? "마감 해제" : "투표 마감"}
+                          {p.is_closed ? "마감 해제" : "투표 종료"}
                         </button>
                         <button
                           onClick={() => deletePoll(p)}
