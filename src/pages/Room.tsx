@@ -28,6 +28,10 @@ export type MessageRow = {
   body: string | null;
   message_type: string;
   image_url: string | null;
+  file_url: string | null;
+  file_name: string | null;
+  file_size: number | null;
+  file_mime: string | null;
   is_system: boolean;
   created_at: string;
 };
