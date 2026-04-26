@@ -19,6 +19,10 @@ export type Database = {
           body: string | null
           client_id: string | null
           created_at: string
+          file_mime: string | null
+          file_name: string | null
+          file_size: number | null
+          file_url: string | null
           id: string
           image_url: string | null
           is_system: boolean
@@ -31,6 +35,10 @@ export type Database = {
           body?: string | null
           client_id?: string | null
           created_at?: string
+          file_mime?: string | null
+          file_name?: string | null
+          file_size?: number | null
+          file_url?: string | null
           id?: string
           image_url?: string | null
           is_system?: boolean
@@ -43,6 +51,10 @@ export type Database = {
           body?: string | null
           client_id?: string | null
           created_at?: string
+          file_mime?: string | null
+          file_name?: string | null
+          file_size?: number | null
+          file_url?: string | null
           id?: string
           image_url?: string | null
           is_system?: boolean
