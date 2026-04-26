@@ -189,9 +189,9 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
     setBody("");
     setFile(null);
     setAttachment(null);
-    const fileInput = document.getElementById("msg-image") as HTMLInputElement | null;
+    const fileInput = document.getElementById("msg-attach") as HTMLInputElement | null;
     if (fileInput) fileInput.value = "";
-    const attachInput = document.getElementById("msg-file") as HTMLInputElement | null;
+    const attachInput = document.getElementById("msg-attach") as HTMLInputElement | null;
     if (attachInput) attachInput.value = "";
     textareaRef.current?.focus();
   }
@@ -514,7 +514,7 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
                     type="button"
                     onClick={() => {
                       setFile(null);
-                      const el = document.getElementById("msg-image") as HTMLInputElement | null;
+                      const el = document.getElementById("msg-attach") as HTMLInputElement | null;
                       if (el) el.value = "";
                     }}
                     className="text-muted-foreground hover:text-foreground shrink-0"
@@ -534,7 +534,7 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
                     type="button"
                     onClick={() => {
                       setAttachment(null);
-                      const el = document.getElementById("msg-file") as HTMLInputElement | null;
+                      const el = document.getElementById("msg-attach") as HTMLInputElement | null;
                       if (el) el.value = "";
                     }}
                     className="text-muted-foreground hover:text-foreground shrink-0"
