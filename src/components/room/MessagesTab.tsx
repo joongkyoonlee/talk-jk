@@ -396,6 +396,24 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
                             loading="lazy"
                           />
                         )}
+                        {m.file_url && (
+                          <a
+                            href={m.file_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            download={m.file_name || undefined}
+                            className="mt-3 inline-flex items-center gap-2 rounded-xl border border-accent/30 bg-background/60 px-3 py-2 text-sm hover:bg-background transition max-w-full"
+                          >
+                            <FileText className="h-4 w-4 text-accent shrink-0" />
+                            <span className="truncate">{m.file_name || "첨부 파일"}</span>
+                            {m.file_size != null && (
+                              <span className="text-xs text-muted-foreground shrink-0">
+                                {formatBytes(m.file_size)}
+                              </span>
+                            )}
+                            <Download className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                          </a>
+                        )}
                       </div>
                     );
                   }
