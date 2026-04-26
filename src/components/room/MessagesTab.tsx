@@ -467,7 +467,7 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
                           )}
                         </div>
                         <div
-                          className={`rounded-2xl px-4 py-2.5 shadow-sm ${
+                          className={`group relative rounded-2xl px-4 py-2.5 pr-9 shadow-sm ${
                             isMine
                               ? "bg-primary text-primary-foreground rounded-br-md"
                               : isInstructorMsg
@@ -475,6 +475,19 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
                                 : "bg-card text-foreground border border-border rounded-bl-md"
                           }`}
                         >
+                          <button
+                            type="button"
+                            onClick={() => copyMessageText(m)}
+                            title="메시지 복사"
+                            aria-label="메시지 복사"
+                            className={`absolute top-1.5 right-1.5 inline-flex h-6 w-6 items-center justify-center rounded-full transition opacity-0 group-hover:opacity-100 focus:opacity-100 ${
+                              isMine
+                                ? "bg-primary-foreground/15 hover:bg-primary-foreground/25 text-primary-foreground"
+                                : "bg-background/70 hover:bg-background text-muted-foreground hover:text-foreground"
+                            }`}
+                          >
+                            <Copy className="h-3 w-3" />
+                          </button>
                           {m.body && (
                             <p className="text-sm whitespace-pre-wrap leading-relaxed break-words">
                               {linkify(m.body)}
