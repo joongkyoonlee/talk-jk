@@ -141,17 +141,6 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
     return data.publicUrl;
   }
 
-  function handleAttachmentChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const f = e.target.files?.[0];
-    if (!f) return setAttachment(null);
-    if (f.size > MAX_FILE_SIZE) {
-      toast({ title: "파일이 50MB를 초과합니다." });
-      e.target.value = "";
-      return;
-    }
-    setAttachment(f);
-  }
-
   async function handleSend(e?: React.FormEvent) {
     e?.preventDefault();
     if (!body.trim() && !file && !attachment) return;
