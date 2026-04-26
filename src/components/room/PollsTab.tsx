@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Trash2, Vote, Lock, Unlock } from "lucide-react";
+import { Plus, Trash2, Lock, Unlock, Check, X, Heart, Star, Sparkles, ThumbsUp, Flame } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import type { Poll } from "@/pages/Room";
