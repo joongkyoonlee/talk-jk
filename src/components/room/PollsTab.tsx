@@ -45,8 +45,19 @@ export default function PollsTab({ polls, session, isInstructor, roomId }: Props
     toast({ title: "익명투표를 만들었습니다." });
   }
 
-  async function handleVote(pollId: string, optionId: string) {
+  async function handleVote(pollId: string, optionId: string, existingVoteId?: string, currentOptionId?: string) {
+    if (currentOptionId === optionId) return;
     setVoting(pollId);
+    if (existingVoteId) {
+      const { error } = await supabase
+        .from("poll_votes")
+        .update({ poll_option_id: optionId })
+        .eq("id", existingVoteId);
+      setVoting(null);
+      if (error) return toast({ title: "투표 변경 실패", description: error.message });
+      toast({ title: "투표를 변경했습니다." });
+      return;
+    }
     const { error } = await supabase.from("poll_votes").insert({
       poll_id: pollId,
       poll_option_id: optionId,
