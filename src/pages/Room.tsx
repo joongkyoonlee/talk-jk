@@ -220,7 +220,7 @@ const RoomPage = () => {
   const tabContent = useMemo(() => {
     if (!session || !room) return null;
     if (tab === "messages")
-      return <MessagesTab room={room} messages={messages} session={session} isInstructor={isInstructor} />;
+      return <MessagesTab room={room} messages={messages} polls={polls} session={session} isInstructor={isInstructor} />;
     if (tab === "opinions") return <OpinionsTab opinions={opinions} session={session} />;
     if (tab === "polls")
       return <PollsTab polls={polls} session={session} isInstructor={isInstructor} roomId={room.id} />;

@@ -10,11 +10,12 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
-import type { MessageRow, Room } from "@/pages/Room";
+import type { MessageRow, Poll, Room } from "@/pages/Room";
 import type { RoomSession } from "@/lib/session";
 import { formatKoDate } from "@/lib/session";
 import { toast } from "@/hooks/use-toast";
 import { linkify } from "@/lib/linkify";
+import PollCard from "./PollCard";
 
 const MAX_IMAGE_SIZE = 20 * 1024 * 1024;
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
@@ -22,11 +23,16 @@ const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 interface Props {
   room: Room;
   messages: MessageRow[];
+  polls: Poll[];
   session: RoomSession;
   isInstructor: boolean;
 }
 
-export default function MessagesTab({ room, messages, session, isInstructor }: Props) {
+type TimelineItem =
+  | { kind: "message"; created_at: string; id: string; data: MessageRow }
+  | { kind: "poll"; created_at: string; id: string; data: Poll };
+
+export default function MessagesTab({ room, messages, polls, session, isInstructor }: Props) {
   const [body, setBody] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [sending, setSending] = useState(false);
@@ -45,7 +51,7 @@ export default function MessagesTab({ room, messages, session, isInstructor }: P
 
   useEffect(() => {
     listEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages.length]);
+  }, [messages.length, polls.length]);
 
   function acceptFile(f: File): boolean {
     if (!IMAGE_TYPES.includes(f.type)) {
@@ -268,89 +274,62 @@ export default function MessagesTab({ room, messages, session, isInstructor }: P
           </div>
         )}
 
-        {/* Messages list */}
+        {/* Messages list (messages + polls merged by time) */}
         <div className="flex-1 overflow-y-auto px-5 py-5 space-y-3">
-          {messages.length === 0 ? (
-            <div className="text-center text-muted-foreground py-12 text-sm">
-              아직 올라온 메시지가 없습니다.
-            </div>
-          ) : (
-            <>
-              {messages.map((m) => {
-                const isMine = m.client_id && m.client_id === session.clientId;
-                const isAnnouncement = m.message_type === "announcement";
-                const isReply = m.message_type === "opinion_reply";
-                const isInstructorMsg = m.role === "instructor";
+          {(() => {
+            const timeline: TimelineItem[] = [
+              ...messages.map((m) => ({ kind: "message" as const, id: `m-${m.id}`, created_at: m.created_at, data: m })),
+              ...polls.map((p) => ({ kind: "poll" as const, id: `p-${p.id}`, created_at: p.created_at, data: p })),
+            ].sort((a, b) => a.created_at.localeCompare(b.created_at));
 
-                // 공지는 가로 전체 카드
-                if (isAnnouncement) {
-                  return (
-                    <div
-                      key={m.id}
-                      className="rounded-2xl border border-accent/40 bg-gold-soft/20 p-4"
-                    >
-                      <div className="flex items-center justify-between gap-2 flex-wrap">
-                        <div className="flex items-center gap-2">
-                          <Megaphone className="h-4 w-4 text-accent" />
-                          <span className="font-serif font-medium">{m.nickname}</span>
-                          <span className="text-[10px] uppercase tracking-wider rounded-full px-2 py-0.5 bg-accent text-accent-foreground">
-                            공지
+            if (timeline.length === 0) {
+              return (
+                <div className="text-center text-muted-foreground py-12 text-sm">
+                  아직 올라온 메시지가 없습니다.
+                </div>
+              );
+            }
+
+            return (
+              <>
+                {timeline.map((item) => {
+                  if (item.kind === "poll") {
+                    return (
+                      <PollCard
+                        key={item.id}
+                        poll={item.data}
+                        session={session}
+                        isInstructor={isInstructor}
+                        compact
+                      />
+                    );
+                  }
+                  const m = item.data;
+                  const isMine = m.client_id && m.client_id === session.clientId;
+                  const isAnnouncement = m.message_type === "announcement";
+                  const isReply = m.message_type === "opinion_reply";
+                  const isInstructorMsg = m.role === "instructor";
+
+                  if (isAnnouncement) {
+                    return (
+                      <div
+                        key={item.id}
+                        className="rounded-2xl border border-accent/40 bg-gold-soft/20 p-4"
+                      >
+                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                          <div className="flex items-center gap-2">
+                            <Megaphone className="h-4 w-4 text-accent" />
+                            <span className="font-serif font-medium">{m.nickname}</span>
+                            <span className="text-[10px] uppercase tracking-wider rounded-full px-2 py-0.5 bg-accent text-accent-foreground">
+                              공지
+                            </span>
+                          </div>
+                          <span className="text-xs text-muted-foreground">
+                            {formatKoDate(m.created_at)}
                           </span>
                         </div>
-                        <span className="text-xs text-muted-foreground">
-                          {formatKoDate(m.created_at)}
-                        </span>
-                      </div>
-                      {m.body && (
-                        <p className="mt-2 text-sm whitespace-pre-wrap leading-relaxed break-words">
-                          {linkify(m.body)}
-                        </p>
-                      )}
-                      {m.image_url && (
-                        <img
-                          src={m.image_url}
-                          alt="첨부 이미지"
-                          className="mt-3 rounded-xl max-h-80 w-auto"
-                          loading="lazy"
-                        />
-                      )}
-                    </div>
-                  );
-                }
-
-                // 일반/의견답변 — 채팅 버블
-                return (
-                  <div
-                    key={m.id}
-                    className={`flex gap-2 ${isMine ? "justify-end" : "justify-start"}`}
-                  >
-                    <div className={`max-w-[78%] ${isMine ? "items-end" : "items-start"} flex flex-col`}>
-                      <div className="flex items-center gap-1.5 mb-1 px-1">
-                        <span className="text-xs font-medium font-serif">
-                          {m.nickname || "사용자"}
-                        </span>
-                        {isInstructorMsg && (
-                          <span className="text-[9px] uppercase tracking-wider rounded-full px-1.5 py-0.5 bg-accent/20 text-accent-foreground">
-                            강사
-                          </span>
-                        )}
-                        {isReply && (
-                          <span className="text-[9px] uppercase tracking-wider rounded-full px-1.5 py-0.5 bg-foreground/10 text-foreground">
-                            의견답변
-                          </span>
-                        )}
-                      </div>
-                      <div
-                        className={`rounded-2xl px-4 py-2.5 shadow-sm ${
-                          isMine
-                            ? "bg-primary text-primary-foreground rounded-br-md"
-                            : isInstructorMsg
-                              ? "bg-gold-soft/30 text-foreground border border-accent/20 rounded-bl-md"
-                              : "bg-card text-foreground border border-border rounded-bl-md"
-                        }`}
-                      >
                         {m.body && (
-                          <p className="text-sm whitespace-pre-wrap leading-relaxed break-words">
+                          <p className="mt-2 text-sm whitespace-pre-wrap leading-relaxed break-words">
                             {linkify(m.body)}
                           </p>
                         )}
@@ -358,21 +337,69 @@ export default function MessagesTab({ room, messages, session, isInstructor }: P
                           <img
                             src={m.image_url}
                             alt="첨부 이미지"
-                            className={`rounded-xl max-h-72 w-auto ${m.body ? "mt-2" : ""}`}
+                            className="mt-3 rounded-xl max-h-80 w-auto"
                             loading="lazy"
                           />
                         )}
                       </div>
-                      <span className="text-[10px] text-muted-foreground mt-1 px-1">
-                        {formatKoDate(m.created_at)}
-                      </span>
+                    );
+                  }
+
+                  return (
+                    <div
+                      key={item.id}
+                      className={`flex gap-2 ${isMine ? "justify-end" : "justify-start"}`}
+                    >
+                      <div className={`max-w-[78%] ${isMine ? "items-end" : "items-start"} flex flex-col`}>
+                        <div className="flex items-center gap-1.5 mb-1 px-1">
+                          <span className="text-xs font-medium font-serif">
+                            {m.nickname || "사용자"}
+                          </span>
+                          {isInstructorMsg && (
+                            <span className="text-[9px] uppercase tracking-wider rounded-full px-1.5 py-0.5 bg-accent/20 text-accent-foreground">
+                              강사
+                            </span>
+                          )}
+                          {isReply && (
+                            <span className="text-[9px] uppercase tracking-wider rounded-full px-1.5 py-0.5 bg-foreground/10 text-foreground">
+                              의견답변
+                            </span>
+                          )}
+                        </div>
+                        <div
+                          className={`rounded-2xl px-4 py-2.5 shadow-sm ${
+                            isMine
+                              ? "bg-primary text-primary-foreground rounded-br-md"
+                              : isInstructorMsg
+                                ? "bg-gold-soft/30 text-foreground border border-accent/20 rounded-bl-md"
+                                : "bg-card text-foreground border border-border rounded-bl-md"
+                          }`}
+                        >
+                          {m.body && (
+                            <p className="text-sm whitespace-pre-wrap leading-relaxed break-words">
+                              {linkify(m.body)}
+                            </p>
+                          )}
+                          {m.image_url && (
+                            <img
+                              src={m.image_url}
+                              alt="첨부 이미지"
+                              className={`rounded-xl max-h-72 w-auto ${m.body ? "mt-2" : ""}`}
+                              loading="lazy"
+                            />
+                          )}
+                        </div>
+                        <span className="text-[10px] text-muted-foreground mt-1 px-1">
+                          {formatKoDate(m.created_at)}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-              <div ref={listEndRef} />
-            </>
-          )}
+                  );
+                })}
+                <div ref={listEndRef} />
+              </>
+            );
+          })()}
         </div>
 
         {/* Composer — chat bar */}
