@@ -27,12 +27,54 @@ function formatBytes(bytes: number): string {
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 }
 
+async function copyImageToClipboard(url: string): Promise<boolean> {
+  try {
+    const res = await fetch(url);
+    const blob = await res.blob();
+    let outBlob = blob;
+    if (blob.type !== "image/png" && typeof createImageBitmap === "function") {
+      try {
+        const bitmap = await createImageBitmap(blob);
+        const canvas = document.createElement("canvas");
+        canvas.width = bitmap.width;
+        canvas.height = bitmap.height;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(bitmap, 0, 0);
+          const png = await new Promise<Blob | null>((resolve) =>
+            canvas.toBlob((b) => resolve(b), "image/png"),
+          );
+          if (png) outBlob = png;
+        }
+      } catch {
+        // fall back to original blob
+      }
+    }
+    // @ts-ignore - ClipboardItem may not be in lib types in older targets
+    const item = new ClipboardItem({ [outBlob.type]: outBlob });
+    // @ts-ignore
+    await navigator.clipboard.write([item]);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function copyMessageText(m: MessageRow) {
+  // Image-only message: copy the image bitmap itself
+  if (m.image_url && !m.body) {
+    const ok = await copyImageToClipboard(m.image_url);
+    toast({ title: ok ? "이미지를 복사했습니다." : "이미지 복사 실패" });
+    return;
+  }
   const parts: string[] = [];
   if (m.body) parts.push(m.body);
-  if (m.image_url) parts.push(m.image_url);
-  if (m.file_url) parts.push(`${m.file_name || "첨부 파일"}: ${m.file_url}`);
   const text = parts.join("\n").trim();
+  if (!text && m.image_url) {
+    const ok = await copyImageToClipboard(m.image_url);
+    toast({ title: ok ? "이미지를 복사했습니다." : "이미지 복사 실패" });
+    return;
+  }
   if (!text) {
     toast({ title: "복사할 내용이 없습니다." });
     return;
@@ -389,15 +431,17 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
                         key={item.id}
                         className="group relative rounded-2xl border border-accent/40 bg-gold-soft/20 p-4"
                       >
-                        <button
-                          type="button"
-                          onClick={() => copyMessageText(m)}
-                          title="메시지 복사"
-                          aria-label="메시지 복사"
-                          className="absolute top-2 right-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-background/70 text-muted-foreground hover:text-foreground hover:bg-background transition"
-                        >
-                          <Copy className="h-3.5 w-3.5" />
-                        </button>
+                        {(m.body || m.image_url) && (
+                          <button
+                            type="button"
+                            onClick={() => copyMessageText(m)}
+                            title="메시지 복사"
+                            aria-label="메시지 복사"
+                            className="absolute top-2 right-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-background/70 text-muted-foreground hover:text-foreground hover:bg-background transition"
+                          >
+                            <Copy className="h-3.5 w-3.5" />
+                          </button>
+                        )}
                         <div className="flex items-center justify-between gap-2 flex-wrap">
                           <div className="flex items-center gap-2">
                             <Megaphone className="h-4 w-4 text-accent" />
@@ -467,7 +511,9 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
                           )}
                         </div>
                         <div
-                          className={`group relative rounded-2xl px-4 py-2.5 pr-9 shadow-sm ${
+                          className={`group relative rounded-2xl px-4 py-2.5 shadow-sm ${
+                            m.body || m.image_url ? "pr-9" : ""
+                          } ${
                             isMine
                               ? "bg-primary text-primary-foreground rounded-br-md"
                               : isInstructorMsg
@@ -475,19 +521,21 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
                                 : "bg-card text-foreground border border-border rounded-bl-md"
                           }`}
                         >
-                          <button
-                            type="button"
-                            onClick={() => copyMessageText(m)}
-                            title="메시지 복사"
-                            aria-label="메시지 복사"
-                            className={`absolute top-1.5 right-1.5 inline-flex h-6 w-6 items-center justify-center rounded-full transition ${
-                              isMine
-                                ? "bg-primary-foreground/15 hover:bg-primary-foreground/25 text-primary-foreground"
-                                : "bg-background/70 hover:bg-background text-muted-foreground hover:text-foreground"
-                            }`}
-                          >
-                            <Copy className="h-3 w-3" />
-                          </button>
+                          {(m.body || m.image_url) && (
+                            <button
+                              type="button"
+                              onClick={() => copyMessageText(m)}
+                              title="메시지 복사"
+                              aria-label="메시지 복사"
+                              className={`absolute top-1.5 right-1.5 inline-flex h-6 w-6 items-center justify-center rounded-full transition ${
+                                isMine
+                                  ? "bg-primary-foreground/15 hover:bg-primary-foreground/25 text-primary-foreground"
+                                  : "bg-background/70 hover:bg-background text-muted-foreground hover:text-foreground"
+                              }`}
+                            >
+                              <Copy className="h-3 w-3" />
+                            </button>
+                          )}
                           {m.body && (
                             <p className="text-sm whitespace-pre-wrap leading-relaxed break-words">
                               {linkify(m.body)}
