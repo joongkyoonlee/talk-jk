@@ -27,6 +27,24 @@ function formatBytes(bytes: number): string {
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 }
 
+async function copyMessageText(m: MessageRow) {
+  const parts: string[] = [];
+  if (m.body) parts.push(m.body);
+  if (m.image_url) parts.push(m.image_url);
+  if (m.file_url) parts.push(`${m.file_name || "첨부 파일"}: ${m.file_url}`);
+  const text = parts.join("\n").trim();
+  if (!text) {
+    toast({ title: "복사할 내용이 없습니다." });
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(text);
+    toast({ title: "메시지를 복사했습니다." });
+  } catch {
+    toast({ title: "복사 실패", description: "브라우저 권한을 확인해 주세요." });
+  }
+}
+
 interface Props {
   room: Room;
   messages: MessageRow[];
