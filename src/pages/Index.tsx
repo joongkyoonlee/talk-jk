@@ -54,10 +54,10 @@ const Index = () => {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     const pass = String(fd.get("passcode") || "").trim();
-    const nickname = String(fd.get("nickname") || "").trim();
+    let nickname = String(fd.get("nickname") || "").trim();
     const role = (String(fd.get("role") || "student") as "instructor" | "student");
     if (!/^\d{4}$/.test(pass)) return toast({ title: "패스코드는 숫자 4자리여야 합니다." });
-    if (!nickname) return toast({ title: "닉네임을 입력하세요." });
+    if (!nickname) nickname = newAnonymousName();
     setJoining(true);
     const { data, error } = await supabase.from("rooms").select("*").eq("passcode", pass).maybeSingle();
     setJoining(false);
