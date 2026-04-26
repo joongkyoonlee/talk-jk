@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Image as ImageIcon, Paperclip, Pin, Send, X, Megaphone, FileText, Download } from "lucide-react";
+import { Image as ImageIcon, Paperclip, Pin, Send, X, Megaphone, FileText, Download, Copy } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
@@ -25,6 +25,24 @@ function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+}
+
+async function copyMessageText(m: MessageRow) {
+  const parts: string[] = [];
+  if (m.body) parts.push(m.body);
+  if (m.image_url) parts.push(m.image_url);
+  if (m.file_url) parts.push(`${m.file_name || "첨부 파일"}: ${m.file_url}`);
+  const text = parts.join("\n").trim();
+  if (!text) {
+    toast({ title: "복사할 내용이 없습니다." });
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(text);
+    toast({ title: "메시지를 복사했습니다." });
+  } catch {
+    toast({ title: "복사 실패", description: "브라우저 권한을 확인해 주세요." });
+  }
 }
 
 interface Props {
@@ -369,8 +387,17 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
                     return (
                       <div
                         key={item.id}
-                        className="rounded-2xl border border-accent/40 bg-gold-soft/20 p-4"
+                        className="group relative rounded-2xl border border-accent/40 bg-gold-soft/20 p-4"
                       >
+                        <button
+                          type="button"
+                          onClick={() => copyMessageText(m)}
+                          title="메시지 복사"
+                          aria-label="메시지 복사"
+                          className="absolute top-2 right-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-background/70 text-muted-foreground hover:text-foreground hover:bg-background transition opacity-0 group-hover:opacity-100 focus:opacity-100"
+                        >
+                          <Copy className="h-3.5 w-3.5" />
+                        </button>
                         <div className="flex items-center justify-between gap-2 flex-wrap">
                           <div className="flex items-center gap-2">
                             <Megaphone className="h-4 w-4 text-accent" />
@@ -440,7 +467,7 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
                           )}
                         </div>
                         <div
-                          className={`rounded-2xl px-4 py-2.5 shadow-sm ${
+                          className={`group relative rounded-2xl px-4 py-2.5 pr-9 shadow-sm ${
                             isMine
                               ? "bg-primary text-primary-foreground rounded-br-md"
                               : isInstructorMsg
@@ -448,6 +475,19 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
                                 : "bg-card text-foreground border border-border rounded-bl-md"
                           }`}
                         >
+                          <button
+                            type="button"
+                            onClick={() => copyMessageText(m)}
+                            title="메시지 복사"
+                            aria-label="메시지 복사"
+                            className={`absolute top-1.5 right-1.5 inline-flex h-6 w-6 items-center justify-center rounded-full transition opacity-0 group-hover:opacity-100 focus:opacity-100 ${
+                              isMine
+                                ? "bg-primary-foreground/15 hover:bg-primary-foreground/25 text-primary-foreground"
+                                : "bg-background/70 hover:bg-background text-muted-foreground hover:text-foreground"
+                            }`}
+                          >
+                            <Copy className="h-3 w-3" />
+                          </button>
                           {m.body && (
                             <p className="text-sm whitespace-pre-wrap leading-relaxed break-words">
                               {linkify(m.body)}
