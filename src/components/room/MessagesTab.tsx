@@ -62,21 +62,32 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
   }, [messages.length, polls.length]);
 
   function acceptFile(f: File): boolean {
-    if (!IMAGE_TYPES.includes(f.type)) {
-      toast({ title: "지원하지 않는 이미지 형식입니다." });
+    const isImage = IMAGE_TYPES.includes(f.type);
+    if (isImage) {
+      if (f.size > MAX_IMAGE_SIZE) {
+        toast({ title: "이미지가 20MB를 초과합니다." });
+        return false;
+      }
+      setFile(f);
+      setAttachment(null);
+      return true;
+    }
+    if (f.size > MAX_FILE_SIZE) {
+      toast({ title: "파일이 50MB를 초과합니다." });
       return false;
     }
-    if (f.size > MAX_IMAGE_SIZE) {
-      toast({ title: "이미지가 20MB를 초과합니다." });
-      return false;
-    }
-    setFile(f);
+    setAttachment(f);
+    setFile(null);
     return true;
   }
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
-    if (!f) return setFile(null);
+    if (!f) {
+      setFile(null);
+      setAttachment(null);
+      return;
+    }
     if (!acceptFile(f)) {
       e.target.value = "";
     }
