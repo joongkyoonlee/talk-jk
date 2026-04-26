@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Image as ImageIcon, Paperclip, Pin, Send, X, Megaphone, FileText, Download } from "lucide-react";
+import { Image as ImageIcon, Paperclip, Pin, Send, X, Megaphone, FileText, Download, Copy } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
