@@ -394,7 +394,7 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
                           onClick={() => copyMessageText(m)}
                           title="메시지 복사"
                           aria-label="메시지 복사"
-                          className="absolute top-2 right-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-background/70 text-muted-foreground hover:text-foreground hover:bg-background transition opacity-0 group-hover:opacity-100 focus:opacity-100"
+                          className="absolute top-2 right-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-background/70 text-muted-foreground hover:text-foreground hover:bg-background transition"
                         >
                           <Copy className="h-3.5 w-3.5" />
                         </button>
@@ -480,7 +480,7 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
                             onClick={() => copyMessageText(m)}
                             title="메시지 복사"
                             aria-label="메시지 복사"
-                            className={`absolute top-1.5 right-1.5 inline-flex h-6 w-6 items-center justify-center rounded-full transition opacity-0 group-hover:opacity-100 focus:opacity-100 ${
+                            className={`absolute top-1.5 right-1.5 inline-flex h-6 w-6 items-center justify-center rounded-full transition ${
                               isMine
                                 ? "bg-primary-foreground/15 hover:bg-primary-foreground/25 text-primary-foreground"
                                 : "bg-background/70 hover:bg-background text-muted-foreground hover:text-foreground"
