@@ -547,31 +547,17 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
           )}
           <div className="flex items-end gap-2">
             <label
-              htmlFor="msg-image"
+              htmlFor="msg-attach"
               className="shrink-0 inline-flex h-10 w-10 items-center justify-center rounded-full border border-border text-muted-foreground hover:text-foreground hover:border-foreground/40 transition cursor-pointer"
-              title="이미지 첨부"
-            >
-              <ImageIcon className="h-4 w-4" />
-            </label>
-            <input
-              id="msg-image"
-              type="file"
-              accept="image/jpeg,image/png,image/webp,image/gif"
-              className="sr-only"
-              onChange={handleFileChange}
-            />
-            <label
-              htmlFor="msg-file"
-              className="shrink-0 inline-flex h-10 w-10 items-center justify-center rounded-full border border-border text-muted-foreground hover:text-foreground hover:border-foreground/40 transition cursor-pointer"
-              title="파일 첨부 (최대 50MB)"
+              title="파일 첨부 (이미지 20MB · 기타 파일 50MB)"
             >
               <Paperclip className="h-4 w-4" />
             </label>
             <input
-              id="msg-file"
+              id="msg-attach"
               type="file"
               className="sr-only"
-              onChange={handleAttachmentChange}
+              onChange={handleFileChange}
             />
             <Textarea
               ref={textareaRef}
