@@ -10,11 +10,12 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
-import type { MessageRow, Room } from "@/pages/Room";
+import type { MessageRow, Poll, Room } from "@/pages/Room";
 import type { RoomSession } from "@/lib/session";
 import { formatKoDate } from "@/lib/session";
 import { toast } from "@/hooks/use-toast";
 import { linkify } from "@/lib/linkify";
+import PollCard from "./PollCard";
 
 const MAX_IMAGE_SIZE = 20 * 1024 * 1024;
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
@@ -22,11 +23,16 @@ const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 interface Props {
   room: Room;
   messages: MessageRow[];
+  polls: Poll[];
   session: RoomSession;
   isInstructor: boolean;
 }
 
-export default function MessagesTab({ room, messages, session, isInstructor }: Props) {
+type TimelineItem =
+  | { kind: "message"; created_at: string; id: string; data: MessageRow }
+  | { kind: "poll"; created_at: string; id: string; data: Poll };
+
+export default function MessagesTab({ room, messages, polls, session, isInstructor }: Props) {
   const [body, setBody] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [sending, setSending] = useState(false);
