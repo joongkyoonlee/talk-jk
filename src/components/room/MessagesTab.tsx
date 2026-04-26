@@ -51,7 +51,7 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
 
   useEffect(() => {
     listEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages.length]);
+  }, [messages.length, polls.length]);
 
   function acceptFile(f: File): boolean {
     if (!IMAGE_TYPES.includes(f.type)) {
