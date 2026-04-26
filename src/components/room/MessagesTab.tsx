@@ -62,21 +62,32 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
   }, [messages.length, polls.length]);
 
   function acceptFile(f: File): boolean {
-    if (!IMAGE_TYPES.includes(f.type)) {
-      toast({ title: "지원하지 않는 이미지 형식입니다." });
+    const isImage = IMAGE_TYPES.includes(f.type);
+    if (isImage) {
+      if (f.size > MAX_IMAGE_SIZE) {
+        toast({ title: "이미지가 20MB를 초과합니다." });
+        return false;
+      }
+      setFile(f);
+      setAttachment(null);
+      return true;
+    }
+    if (f.size > MAX_FILE_SIZE) {
+      toast({ title: "파일이 50MB를 초과합니다." });
       return false;
     }
-    if (f.size > MAX_IMAGE_SIZE) {
-      toast({ title: "이미지가 20MB를 초과합니다." });
-      return false;
-    }
-    setFile(f);
+    setAttachment(f);
+    setFile(null);
     return true;
   }
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
-    if (!f) return setFile(null);
+    if (!f) {
+      setFile(null);
+      setAttachment(null);
+      return;
+    }
     if (!acceptFile(f)) {
       e.target.value = "";
     }
@@ -130,17 +141,6 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
     return data.publicUrl;
   }
 
-  function handleAttachmentChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const f = e.target.files?.[0];
-    if (!f) return setAttachment(null);
-    if (f.size > MAX_FILE_SIZE) {
-      toast({ title: "파일이 50MB를 초과합니다." });
-      e.target.value = "";
-      return;
-    }
-    setAttachment(f);
-  }
-
   async function handleSend(e?: React.FormEvent) {
     e?.preventDefault();
     if (!body.trim() && !file && !attachment) return;
@@ -189,9 +189,9 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
     setBody("");
     setFile(null);
     setAttachment(null);
-    const fileInput = document.getElementById("msg-image") as HTMLInputElement | null;
+    const fileInput = document.getElementById("msg-attach") as HTMLInputElement | null;
     if (fileInput) fileInput.value = "";
-    const attachInput = document.getElementById("msg-file") as HTMLInputElement | null;
+    const attachInput = document.getElementById("msg-attach") as HTMLInputElement | null;
     if (attachInput) attachInput.value = "";
     textareaRef.current?.focus();
   }
@@ -514,7 +514,7 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
                     type="button"
                     onClick={() => {
                       setFile(null);
-                      const el = document.getElementById("msg-image") as HTMLInputElement | null;
+                      const el = document.getElementById("msg-attach") as HTMLInputElement | null;
                       if (el) el.value = "";
                     }}
                     className="text-muted-foreground hover:text-foreground shrink-0"
@@ -534,7 +534,7 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
                     type="button"
                     onClick={() => {
                       setAttachment(null);
-                      const el = document.getElementById("msg-file") as HTMLInputElement | null;
+                      const el = document.getElementById("msg-attach") as HTMLInputElement | null;
                       if (el) el.value = "";
                     }}
                     className="text-muted-foreground hover:text-foreground shrink-0"
@@ -547,31 +547,17 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
           )}
           <div className="flex items-end gap-2">
             <label
-              htmlFor="msg-image"
+              htmlFor="msg-attach"
               className="shrink-0 inline-flex h-10 w-10 items-center justify-center rounded-full border border-border text-muted-foreground hover:text-foreground hover:border-foreground/40 transition cursor-pointer"
-              title="이미지 첨부"
-            >
-              <ImageIcon className="h-4 w-4" />
-            </label>
-            <input
-              id="msg-image"
-              type="file"
-              accept="image/jpeg,image/png,image/webp,image/gif"
-              className="sr-only"
-              onChange={handleFileChange}
-            />
-            <label
-              htmlFor="msg-file"
-              className="shrink-0 inline-flex h-10 w-10 items-center justify-center rounded-full border border-border text-muted-foreground hover:text-foreground hover:border-foreground/40 transition cursor-pointer"
-              title="파일 첨부 (최대 50MB)"
+              title="파일 첨부 (이미지 20MB · 기타 파일 50MB)"
             >
               <Paperclip className="h-4 w-4" />
             </label>
             <input
-              id="msg-file"
+              id="msg-attach"
               type="file"
               className="sr-only"
-              onChange={handleAttachmentChange}
+              onChange={handleFileChange}
             />
             <Textarea
               ref={textareaRef}
