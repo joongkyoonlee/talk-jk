@@ -35,17 +35,25 @@ export default function PollCard({ poll, session, isInstructor, compact }: Props
   });
 
   async function handleVote(optionId: string) {
+    if (myVote?.poll_option_id === optionId) return;
     setVoting(true);
+    if (myVote) {
+      const { error } = await supabase
+        .from("poll_votes")
+        .update({ poll_option_id: optionId })
+        .eq("id", myVote.id);
+      setVoting(false);
+      if (error) return toast({ title: "투표 변경 실패", description: error.message });
+      toast({ title: "투표를 변경했습니다." });
+      return;
+    }
     const { error } = await supabase.from("poll_votes").insert({
       poll_id: poll.id,
       poll_option_id: optionId,
       voter_client_id: session.clientId,
     });
     setVoting(false);
-    if (error) {
-      if (error.code === "23505") return toast({ title: "이미 투표하셨습니다." });
-      return toast({ title: "투표 실패", description: error.message });
-    }
+    if (error) return toast({ title: "투표 실패", description: error.message });
     toast({ title: "투표가 반영되었습니다." });
   }
 
