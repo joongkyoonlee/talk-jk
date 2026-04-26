@@ -139,8 +139,8 @@ export default function MessagesTab({ room, messages, session, isInstructor }: P
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_380px] lg:items-end">
-      {/* Left: notice + messages */}
+    <div className="space-y-6 max-w-3xl mx-auto">
+      {/* Top: notice + messages */}
       <div className="space-y-4">
         {room.notice && (
           <div className="surface-card p-6 bg-gradient-to-br from-gold-soft/30 to-ivory-deep/40 border-gold/30">
@@ -216,7 +216,7 @@ export default function MessagesTab({ room, messages, session, isInstructor }: P
         </div>
       </div>
 
-      {/* Right: composer (instructor) or notice */}
+      {/* Bottom: composer */}
       <aside className="space-y-4">
         {isInstructor && (
           <form onSubmit={handleNoticeSave} className="surface-card p-6 space-y-3">
