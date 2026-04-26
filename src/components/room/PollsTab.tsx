@@ -287,15 +287,6 @@ export default function PollsTab({ polls, session, isInstructor, roomId }: Props
                       const pct = participants ? Math.round((c / participants) * 100) : 0;
                       const isMyChoice = myVote?.poll_option_id === opt.id;
                       const disabled = p.is_closed || voted || voting === p.id;
-                      const palette = [
-                        { from: "from-emerald-400", to: "to-teal-500", icon: Check },
-                        { from: "from-amber-400", to: "to-orange-500", icon: Star },
-                        { from: "from-rose-400", to: "to-red-500", icon: X },
-                        { from: "from-violet-400", to: "to-purple-500", icon: Sparkles },
-                        { from: "from-sky-400", to: "to-blue-500", icon: ThumbsUp },
-                        { from: "from-pink-400", to: "to-fuchsia-500", icon: Heart },
-                        { from: "from-orange-400", to: "to-rose-500", icon: Flame },
-                      ];
                       const tone = palette[idx % palette.length];
                       const Icon = tone.icon;
                       return (
