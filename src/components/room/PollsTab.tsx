@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Trash2, Vote, Lock, Unlock } from "lucide-react";
+import { Plus, Trash2, Lock, Unlock, Check, X, Heart, Star, Sparkles, ThumbsUp, Flame } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import type { Poll } from "@/pages/Room";
@@ -184,38 +184,52 @@ export default function PollsTab({ polls, session, isInstructor, roomId }: Props
                     )}
                   </div>
 
-                  <div className="mt-5 space-y-3">
-                    {p.options.map((opt) => {
+                  <div
+                    className="mt-5 grid gap-3"
+                    style={{
+                      gridTemplateColumns: `repeat(${Math.min(p.options.length, 3)}, minmax(0, 1fr))`,
+                    }}
+                  >
+                    {p.options.map((opt, idx) => {
                       const c = counts[opt.id] || 0;
                       const pct = participants ? Math.round((c / participants) * 100) : 0;
                       const isMyChoice = myVote?.poll_option_id === opt.id;
                       const disabled = p.is_closed || voted || voting === p.id;
+                      const palette = [
+                        { from: "from-emerald-400", to: "to-teal-500", icon: Check },
+                        { from: "from-amber-400", to: "to-orange-500", icon: Star },
+                        { from: "from-rose-400", to: "to-red-500", icon: X },
+                        { from: "from-violet-400", to: "to-purple-500", icon: Sparkles },
+                        { from: "from-sky-400", to: "to-blue-500", icon: ThumbsUp },
+                        { from: "from-pink-400", to: "to-fuchsia-500", icon: Heart },
+                        { from: "from-orange-400", to: "to-rose-500", icon: Flame },
+                      ];
+                      const tone = palette[idx % palette.length];
+                      const Icon = tone.icon;
                       return (
                         <button
                           key={opt.id}
                           type="button"
                           disabled={disabled}
                           onClick={() => handleVote(p.id, opt.id)}
-                          className={`w-full text-left rounded-2xl border p-4 transition group ${
+                          className={`group relative text-left rounded-2xl p-5 text-white shadow-lg transition-all bg-gradient-to-br ${tone.from} ${tone.to} ${
                             isMyChoice
-                              ? "border-accent bg-accent/10"
-                              : "border-border bg-background hover:border-foreground/30"
+                              ? "ring-4 ring-foreground/80 scale-[1.02] -translate-y-0.5"
+                              : "ring-1 ring-white/20 hover:-translate-y-0.5 hover:shadow-xl"
                           } ${disabled ? "cursor-default" : "cursor-pointer"}`}
                         >
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="font-medium text-sm flex items-center gap-2">
-                              {isMyChoice && <Vote className="h-4 w-4 text-accent" />}
-                              {opt.option_text}
-                            </span>
-                            <span className="text-xs text-muted-foreground tabular-nums">
-                              {c}명 · {pct}%
-                            </span>
+                          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
+                            <Icon className="h-5 w-5" strokeWidth={2.5} />
                           </div>
-                          <div className="mt-3 h-1.5 rounded-full bg-muted overflow-hidden">
+                          <p className="mt-6 font-serif text-lg font-semibold leading-snug break-words">
+                            {opt.option_text}
+                          </p>
+                          <p className="mt-3 text-sm text-white/90 tabular-nums">
+                            {c} 표 · {pct}%
+                          </p>
+                          <div className="mt-2 h-1.5 rounded-full bg-white/25 overflow-hidden">
                             <div
-                              className={`h-full transition-all duration-500 ${
-                                isMyChoice ? "bg-accent" : "bg-primary/70"
-                              }`}
+                              className="h-full bg-white transition-all duration-500"
                               style={{ width: `${pct}%` }}
                             />
                           </div>

@@ -20,7 +20,9 @@ interface Props {
 }
 
 export default function MessagesTab({ room, messages, session, isInstructor }: Props) {
-  const [messageType, setMessageType] = useState<"announcement" | "general">("announcement");
+  const [messageType, setMessageType] = useState<"announcement" | "general">(
+    isInstructor ? "announcement" : "general",
+  );
   const [body, setBody] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [sending, setSending] = useState(false);
@@ -216,95 +218,93 @@ export default function MessagesTab({ room, messages, session, isInstructor }: P
 
       {/* Right: composer (instructor) or notice */}
       <aside className="space-y-4">
-        {isInstructor ? (
-          <>
-            <form onSubmit={handleNoticeSave} className="surface-card p-6 space-y-3">
-              <div className="flex items-center gap-2">
-                <Pin className="h-4 w-4 text-accent" />
-                <h3 className="font-serif text-xl">공지 고정</h3>
-              </div>
-              <Textarea
-                value={noticeDraft}
-                onChange={(e) => setNoticeDraft(e.target.value)}
-                rows={4}
-                placeholder="상단에 고정할 공지"
-                className="rounded-2xl"
-              />
-              <button disabled={savingNotice} className="pill-outline w-full disabled:opacity-60">
-                {savingNotice ? "저장 중..." : "공지 저장"}
-              </button>
-            </form>
-
-            <form onSubmit={handleSend} className="surface-card p-6 space-y-4">
-              <h3 className="font-serif text-xl">강사 메시지 올리기</h3>
-              <div className="grid grid-cols-2 gap-2">
-                {(["announcement", "general"] as const).map((t) => (
-                  <button
-                    key={t}
-                    type="button"
-                    onClick={() => setMessageType(t)}
-                    className={`rounded-full border px-3 py-2 text-sm transition ${
-                      messageType === t
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-background border-border text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {t === "announcement" ? "공지" : "일반"}
-                  </button>
-                ))}
-              </div>
-              <Textarea
-                value={body}
-                onChange={(e) => setBody(e.target.value)}
-                onPaste={handlePaste}
-                rows={6}
-                placeholder="수강생에게 전달할 메시지를 입력하세요 (Ctrl/Cmd+V로 캡쳐 이미지 붙여넣기 가능)"
-                className="rounded-2xl"
-              />
-              <div>
-                <Label htmlFor="msg-image" className="flex items-center gap-2 cursor-pointer">
-                  <span className="inline-flex items-center gap-2 rounded-full border border-dashed border-border px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:border-foreground/40 transition">
-                    <ImageIcon className="h-4 w-4" /> 이미지 선택 (최대 20MB)
-                  </span>
-                </Label>
-                <input
-                  id="msg-image"
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp,image/gif"
-                  className="sr-only"
-                  onChange={handleFileChange}
-                />
-                {file && (
-                  <div className="mt-2 flex items-center justify-between gap-2 text-xs text-muted-foreground bg-muted/50 rounded-lg px-3 py-2">
-                    <span className="truncate">{file.name}</span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setFile(null);
-                        const el = document.getElementById("msg-image") as HTMLInputElement | null;
-                        if (el) el.value = "";
-                      }}
-                      className="text-muted-foreground hover:text-foreground"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </div>
-                )}
-              </div>
-              <button disabled={sending} className="pill-dark w-full disabled:opacity-60">
-                {sending ? "전송 중..." : "메시지 전송"} <Send className="h-4 w-4" />
-              </button>
-            </form>
-          </>
-        ) : (
-          <div className="surface-card p-6">
-            <h3 className="font-serif text-xl">수강생 안내</h3>
-            <p className="text-sm text-muted-foreground mt-3 leading-relaxed">
-              이 화면에서는 강사가 올린 메시지·공지·이미지를 실시간으로 확인할 수 있습니다.
-              의견 등록은 상단의 <b>의견</b> 탭에서, 익명투표는 <b>익명투표</b> 탭에서 참여하세요.
-            </p>
-          </div>
+        {isInstructor && (
+          <form onSubmit={handleNoticeSave} className="surface-card p-6 space-y-3">
+            <div className="flex items-center gap-2">
+              <Pin className="h-4 w-4 text-accent" />
+              <h3 className="font-serif text-xl">공지 고정</h3>
+            </div>
+            <Textarea
+              value={noticeDraft}
+              onChange={(e) => setNoticeDraft(e.target.value)}
+              rows={4}
+              placeholder="상단에 고정할 공지"
+              className="rounded-2xl"
+            />
+            <button disabled={savingNotice} className="pill-outline w-full disabled:opacity-60">
+              {savingNotice ? "저장 중..." : "공지 저장"}
+            </button>
+          </form>
         )}
+
+        <form onSubmit={handleSend} className="surface-card p-6 space-y-4">
+          <h3 className="font-serif text-xl">
+            {isInstructor ? "강사 메시지 올리기" : "메시지 올리기"}
+          </h3>
+          {isInstructor && (
+            <div className="grid grid-cols-2 gap-2">
+              {(["announcement", "general"] as const).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setMessageType(t)}
+                  className={`rounded-full border px-3 py-2 text-sm transition ${
+                    messageType === t
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-background border-border text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {t === "announcement" ? "공지" : "일반"}
+                </button>
+              ))}
+            </div>
+          )}
+          <Textarea
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+            onPaste={handlePaste}
+            rows={6}
+            placeholder={
+              isInstructor
+                ? "수강생에게 전달할 메시지를 입력하세요 (Ctrl/Cmd+V로 캡쳐 이미지 붙여넣기 가능)"
+                : "함께 나눌 메시지를 입력하세요 (Ctrl/Cmd+V로 캡쳐 이미지 붙여넣기 가능)"
+            }
+            className="rounded-2xl"
+          />
+          <div>
+            <Label htmlFor="msg-image" className="flex items-center gap-2 cursor-pointer">
+              <span className="inline-flex items-center gap-2 rounded-full border border-dashed border-border px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:border-foreground/40 transition">
+                <ImageIcon className="h-4 w-4" /> 이미지 선택 (최대 20MB)
+              </span>
+            </Label>
+            <input
+              id="msg-image"
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              className="sr-only"
+              onChange={handleFileChange}
+            />
+            {file && (
+              <div className="mt-2 flex items-center justify-between gap-2 text-xs text-muted-foreground bg-muted/50 rounded-lg px-3 py-2">
+                <span className="truncate">{file.name}</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFile(null);
+                    const el = document.getElementById("msg-image") as HTMLInputElement | null;
+                    if (el) el.value = "";
+                  }}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            )}
+          </div>
+          <button disabled={sending} className="pill-dark w-full disabled:opacity-60">
+            {sending ? "전송 중..." : "메시지 전송"} <Send className="h-4 w-4" />
+          </button>
+        </form>
       </aside>
     </div>
   );
