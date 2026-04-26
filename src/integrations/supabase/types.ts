@@ -237,10 +237,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      seed_default_polls_for_room: {
-        Args: { _room_id: string }
-        Returns: undefined
-      }
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never
