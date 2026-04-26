@@ -162,8 +162,8 @@ const Index = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="j-nick">닉네임</Label>
-              <Input id="j-nick" name="nickname" placeholder="화면에 표시될 이름" required />
+              <Label htmlFor="j-nick">닉네임 <span className="text-xs text-muted-foreground">(선택)</span></Label>
+              <Input id="j-nick" name="nickname" placeholder="비워두면 익명으로 입장합니다" />
             </div>
             <div className="space-y-2">
               <Label>역할</Label>
