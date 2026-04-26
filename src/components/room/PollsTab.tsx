@@ -297,7 +297,7 @@ export default function PollsTab({ polls, session, isInstructor, roomId }: Props
                       const c = counts[opt.id] || 0;
                       const pct = participants ? Math.round((c / participants) * 100) : 0;
                       const isMyChoice = myVote?.poll_option_id === opt.id;
-                      const disabled = p.is_closed || voted || voting === p.id;
+                      const disabled = p.is_closed || voting === p.id || isMyChoice;
                       const tone = palette[idx % palette.length];
                       const Icon = tone.icon;
                       return (
@@ -305,7 +305,7 @@ export default function PollsTab({ polls, session, isInstructor, roomId }: Props
                           key={opt.id}
                           type="button"
                           disabled={disabled}
-                          onClick={() => handleVote(p.id, opt.id)}
+                          onClick={() => handleVote(p.id, opt.id, myVote?.id, myVote?.poll_option_id)}
                           className={`group relative text-left rounded-2xl p-5 text-white shadow-lg transition-all bg-gradient-to-br ${tone.from} ${tone.to} ${
                             isMyChoice
                               ? "ring-4 ring-foreground/80 scale-[1.02] -translate-y-0.5"
