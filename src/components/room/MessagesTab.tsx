@@ -20,7 +20,9 @@ interface Props {
 }
 
 export default function MessagesTab({ room, messages, session, isInstructor }: Props) {
-  const [messageType, setMessageType] = useState<"announcement" | "general">("announcement");
+  const [messageType, setMessageType] = useState<"announcement" | "general">(
+    isInstructor ? "announcement" : "general",
+  );
   const [body, setBody] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [sending, setSending] = useState(false);
