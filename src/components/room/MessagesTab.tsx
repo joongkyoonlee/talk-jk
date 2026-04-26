@@ -42,6 +42,7 @@ type TimelineItem =
 export default function MessagesTab({ room, messages, polls, session, isInstructor }: Props) {
   const [body, setBody] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [attachment, setAttachment] = useState<File | null>(null);
   const [sending, setSending] = useState(false);
 
   // 공지 (강사 전용 다이얼로그)
