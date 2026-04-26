@@ -27,12 +27,54 @@ function formatBytes(bytes: number): string {
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 }
 
+async function copyImageToClipboard(url: string): Promise<boolean> {
+  try {
+    const res = await fetch(url);
+    const blob = await res.blob();
+    let outBlob = blob;
+    if (blob.type !== "image/png" && typeof createImageBitmap === "function") {
+      try {
+        const bitmap = await createImageBitmap(blob);
+        const canvas = document.createElement("canvas");
+        canvas.width = bitmap.width;
+        canvas.height = bitmap.height;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(bitmap, 0, 0);
+          const png = await new Promise<Blob | null>((resolve) =>
+            canvas.toBlob((b) => resolve(b), "image/png"),
+          );
+          if (png) outBlob = png;
+        }
+      } catch {
+        // fall back to original blob
+      }
+    }
+    // @ts-ignore - ClipboardItem may not be in lib types in older targets
+    const item = new ClipboardItem({ [outBlob.type]: outBlob });
+    // @ts-ignore
+    await navigator.clipboard.write([item]);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function copyMessageText(m: MessageRow) {
+  // Image-only message: copy the image bitmap itself
+  if (m.image_url && !m.body) {
+    const ok = await copyImageToClipboard(m.image_url);
+    toast({ title: ok ? "이미지를 복사했습니다." : "이미지 복사 실패" });
+    return;
+  }
   const parts: string[] = [];
   if (m.body) parts.push(m.body);
-  if (m.image_url) parts.push(m.image_url);
-  if (m.file_url) parts.push(`${m.file_name || "첨부 파일"}: ${m.file_url}`);
   const text = parts.join("\n").trim();
+  if (!text && m.image_url) {
+    const ok = await copyImageToClipboard(m.image_url);
+    toast({ title: ok ? "이미지를 복사했습니다." : "이미지 복사 실패" });
+    return;
+  }
   if (!text) {
     toast({ title: "복사할 내용이 없습니다." });
     return;
