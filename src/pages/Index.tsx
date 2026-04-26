@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { loadSession, newClientId, newPasscode, saveSession } from "@/lib/session";
+import { loadSession, newAnonymousName, newClientId, newPasscode, saveSession } from "@/lib/session";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -54,10 +54,10 @@ const Index = () => {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     const pass = String(fd.get("passcode") || "").trim();
-    const nickname = String(fd.get("nickname") || "").trim();
+    let nickname = String(fd.get("nickname") || "").trim();
     const role = (String(fd.get("role") || "student") as "instructor" | "student");
     if (!/^\d{4}$/.test(pass)) return toast({ title: "패스코드는 숫자 4자리여야 합니다." });
-    if (!nickname) return toast({ title: "닉네임을 입력하세요." });
+    if (!nickname) nickname = newAnonymousName();
     setJoining(true);
     const { data, error } = await supabase.from("rooms").select("*").eq("passcode", pass).maybeSingle();
     setJoining(false);
@@ -162,8 +162,8 @@ const Index = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="j-nick">닉네임</Label>
-              <Input id="j-nick" name="nickname" placeholder="화면에 표시될 이름" required />
+              <Label htmlFor="j-nick">닉네임 <span className="text-xs text-muted-foreground">(선택)</span></Label>
+              <Input id="j-nick" name="nickname" placeholder="비워두면 익명으로 입장합니다" />
             </div>
             <div className="space-y-2">
               <Label>역할</Label>
