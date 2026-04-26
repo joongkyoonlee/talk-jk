@@ -115,17 +115,57 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
     return data.publicUrl;
   }
 
+  async function uploadFile(f: File): Promise<string | null> {
+    const safeName = f.name.replace(/[^\w.\-가-힣]/g, "_");
+    const path = `${room.id}/${Date.now()}_${Math.random().toString(36).slice(2, 8)}_${safeName}`;
+    const { error } = await supabase.storage.from("room-files").upload(path, f, {
+      contentType: f.type || "application/octet-stream",
+      upsert: false,
+    });
+    if (error) {
+      toast({ title: "파일 업로드 실패", description: error.message });
+      return null;
+    }
+    const { data } = supabase.storage.from("room-files").getPublicUrl(path);
+    return data.publicUrl;
+  }
+
+  function handleAttachmentChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0];
+    if (!f) return setAttachment(null);
+    if (f.size > MAX_FILE_SIZE) {
+      toast({ title: "파일이 50MB를 초과합니다." });
+      e.target.value = "";
+      return;
+    }
+    setAttachment(f);
+  }
+
   async function handleSend(e?: React.FormEvent) {
     e?.preventDefault();
-    if (!body.trim() && !file) return;
+    if (!body.trim() && !file && !attachment) return;
     setSending(true);
     let image_url: string | null = null;
+    let file_url: string | null = null;
+    let file_name: string | null = null;
+    let file_size: number | null = null;
+    let file_mime: string | null = null;
     if (file) {
       image_url = await uploadImage(file);
       if (!image_url) {
         setSending(false);
         return;
       }
+    }
+    if (attachment) {
+      file_url = await uploadFile(attachment);
+      if (!file_url) {
+        setSending(false);
+        return;
+      }
+      file_name = attachment.name;
+      file_size = attachment.size;
+      file_mime = attachment.type || "application/octet-stream";
     }
     const { error } = await supabase.from("messages").insert({
       room_id: room.id,
@@ -135,6 +175,10 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
       body: body.trim() || null,
       message_type: "general",
       image_url,
+      file_url,
+      file_name,
+      file_size,
+      file_mime,
       is_system: false,
     });
     setSending(false);
@@ -144,8 +188,11 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
     }
     setBody("");
     setFile(null);
+    setAttachment(null);
     const fileInput = document.getElementById("msg-image") as HTMLInputElement | null;
     if (fileInput) fileInput.value = "";
+    const attachInput = document.getElementById("msg-file") as HTMLInputElement | null;
+    if (attachInput) attachInput.value = "";
     textareaRef.current?.focus();
   }
 
