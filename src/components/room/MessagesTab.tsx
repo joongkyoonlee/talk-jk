@@ -504,21 +504,45 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
           onSubmit={handleSend}
           className="border-t border-border/60 bg-background/80 backdrop-blur px-3 py-3"
         >
-          {file && (
-            <div className="mx-1 mb-2 inline-flex items-center gap-2 text-xs text-muted-foreground bg-muted/60 rounded-full px-3 py-1.5 max-w-full">
-              <ImageIcon className="h-3.5 w-3.5 shrink-0" />
-              <span className="truncate">{file.name}</span>
-              <button
-                type="button"
-                onClick={() => {
-                  setFile(null);
-                  const el = document.getElementById("msg-image") as HTMLInputElement | null;
-                  if (el) el.value = "";
-                }}
-                className="text-muted-foreground hover:text-foreground shrink-0"
-              >
-                <X className="h-3 w-3" />
-              </button>
+          {(file || attachment) && (
+            <div className="mx-1 mb-2 flex flex-wrap gap-2">
+              {file && (
+                <div className="inline-flex items-center gap-2 text-xs text-muted-foreground bg-muted/60 rounded-full px-3 py-1.5 max-w-full">
+                  <ImageIcon className="h-3.5 w-3.5 shrink-0" />
+                  <span className="truncate max-w-[200px]">{file.name}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFile(null);
+                      const el = document.getElementById("msg-image") as HTMLInputElement | null;
+                      if (el) el.value = "";
+                    }}
+                    className="text-muted-foreground hover:text-foreground shrink-0"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              )}
+              {attachment && (
+                <div className="inline-flex items-center gap-2 text-xs text-muted-foreground bg-muted/60 rounded-full px-3 py-1.5 max-w-full">
+                  <FileText className="h-3.5 w-3.5 shrink-0" />
+                  <span className="truncate max-w-[200px]">{attachment.name}</span>
+                  <span className="text-[10px] opacity-70 shrink-0">
+                    {formatBytes(attachment.size)}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAttachment(null);
+                      const el = document.getElementById("msg-file") as HTMLInputElement | null;
+                      if (el) el.value = "";
+                    }}
+                    className="text-muted-foreground hover:text-foreground shrink-0"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              )}
             </div>
           )}
           <div className="flex items-end gap-2">
@@ -536,6 +560,19 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
               className="sr-only"
               onChange={handleFileChange}
             />
+            <label
+              htmlFor="msg-file"
+              className="shrink-0 inline-flex h-10 w-10 items-center justify-center rounded-full border border-border text-muted-foreground hover:text-foreground hover:border-foreground/40 transition cursor-pointer"
+              title="파일 첨부 (최대 50MB)"
+            >
+              <Paperclip className="h-4 w-4" />
+            </label>
+            <input
+              id="msg-file"
+              type="file"
+              className="sr-only"
+              onChange={handleAttachmentChange}
+            />
             <Textarea
               ref={textareaRef}
               value={body}
@@ -543,12 +580,12 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
               onPaste={handlePaste}
               onKeyDown={handleKeyDown}
               rows={1}
-              placeholder="메시지를 입력하세요 (Enter 전송, Shift+Enter 줄바꿈, Ctrl/Cmd+V 이미지 붙여넣기)"
+              placeholder="메시지를 입력하세요 (Enter 전송, Shift+Enter 줄바꿈)"
               className="flex-1 resize-none rounded-2xl min-h-[44px] max-h-32 py-2.5"
             />
             <button
               type="submit"
-              disabled={sending || (!body.trim() && !file)}
+              disabled={sending || (!body.trim() && !file && !attachment)}
               className="shrink-0 inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-pill hover:opacity-90 transition disabled:opacity-40 disabled:cursor-not-allowed"
               title="전송"
             >
