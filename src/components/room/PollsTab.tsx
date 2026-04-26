@@ -71,16 +71,70 @@ export default function PollsTab({ polls, session, isInstructor, roomId }: Props
     if (error) toast({ title: "삭제 실패", description: error.message });
   }
 
+  const palette = [
+    { from: "from-emerald-400", to: "to-teal-500", icon: Check },
+    { from: "from-amber-400", to: "to-orange-500", icon: Star },
+    { from: "from-rose-400", to: "to-red-500", icon: X },
+    { from: "from-violet-400", to: "to-purple-500", icon: Sparkles },
+    { from: "from-sky-400", to: "to-blue-500", icon: ThumbsUp },
+    { from: "from-pink-400", to: "to-fuchsia-500", icon: Heart },
+    { from: "from-orange-400", to: "to-rose-500", icon: Flame },
+  ];
+
+  const TEMPLATES: { label: string; question: string; options: string[] }[] = [
+    {
+      label: "진행상황 체크",
+      question: "잘 따라오고 있나요?",
+      options: ["이해했어요!", "천천히요", "못 따라가요"],
+    },
+    {
+      label: "강의 속도",
+      question: "강의 속도는 어떤가요?",
+      options: ["딱 좋아요", "조금 빨라요", "조금 느려요"],
+    },
+    {
+      label: "예/아니오",
+      question: "동의하시나요?",
+      options: ["예", "아니오"],
+    },
+  ];
+
+  function applyTemplate(t: { question: string; options: string[] }) {
+    setQuestion(t.question);
+    setOptions(t.options);
+  }
+
+  const previewOptions = options.map((o) => o.trim()).filter(Boolean);
+
   return (
-    <div className="grid gap-6 lg:grid-cols-[380px_1fr]">
+    <div className="grid gap-6 lg:grid-cols-[420px_1fr]">
       <div className="space-y-4 lg:sticky lg:top-44 self-start">
         {isInstructor ? (
-          <form onSubmit={handleCreate} className="surface-card p-6 space-y-4">
-            <h3 className="font-serif text-xl">익명투표 만들기</h3>
+          <form onSubmit={handleCreate} className="surface-card p-6 space-y-5">
+            <div>
+              <h3 className="font-serif text-xl">익명투표 만들기</h3>
+              <p className="text-xs text-muted-foreground mt-1">
+                질문과 보기를 입력하면 아래 미리보기 그대로 즉시 게시됩니다.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {TEMPLATES.map((t) => (
+                <button
+                  key={t.label}
+                  type="button"
+                  onClick={() => applyTemplate(t)}
+                  className="pill-outline !py-1.5 !px-3 text-xs"
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+
             <Input
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
-              placeholder="투표 질문"
+              placeholder="투표 질문 (예: 잘 따라오고 있나요?)"
               className="rounded-2xl"
             />
             <div className="space-y-2">
@@ -115,9 +169,42 @@ export default function PollsTab({ polls, session, isInstructor, roomId }: Props
             >
               <Plus className="h-4 w-4" /> 보기 추가
             </button>
+
+            {previewOptions.length >= 2 && (
+              <div className="rounded-2xl border border-dashed border-border p-4 space-y-3">
+                <p className="text-[10px] uppercase tracking-widest text-muted-foreground">미리보기</p>
+                <p className="font-serif text-base">{question || "투표 질문"}</p>
+                <div
+                  className="grid gap-2"
+                  style={{
+                    gridTemplateColumns: `repeat(${Math.min(previewOptions.length, 2)}, minmax(0, 1fr))`,
+                  }}
+                >
+                  {previewOptions.map((opt, idx) => {
+                    const tone = palette[idx % palette.length];
+                    const Icon = tone.icon;
+                    return (
+                      <div
+                        key={idx}
+                        className={`rounded-xl p-3 text-white shadow-md bg-gradient-to-br ${tone.from} ${tone.to}`}
+                      >
+                        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-white/25">
+                          <Icon className="h-4 w-4" strokeWidth={2.5} />
+                        </div>
+                        <p className="mt-2 text-sm font-semibold leading-snug break-words">{opt}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             <button disabled={submitting} className="pill-dark w-full disabled:opacity-60">
-              {submitting ? "생성 중..." : "투표 생성"}
+              {submitting ? "생성 중..." : "익명투표 게시하기"}
             </button>
+            <p className="text-[11px] text-muted-foreground text-center">
+              게시하면 모든 참여자에게 실시간으로 표시됩니다. 아래 목록의 <b>투표 마감</b> 버튼으로 언제든 종료할 수 있어요.
+            </p>
           </form>
         ) : (
           <div className="surface-card p-6">
