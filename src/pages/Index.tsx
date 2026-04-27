@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { loadSession, newAnonymousName, newClientId, newPasscode, saveSession } from "@/lib/session";
+import jtalkLogo from "@/assets/jtalk-logo.png";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -86,15 +87,15 @@ const Index = () => {
       {/* Nav */}
       <header className="border-b border-border/60">
         <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="relative h-9 w-9 rounded-full bg-primary text-primary-foreground grid place-items-center font-display text-lg shadow-pill">
-              <span className="italic leading-none -mt-0.5">J</span>
-              <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-accent ring-2 ring-background" />
-            </div>
-            <span className="font-serif text-lg tracking-tight">
-              J <em className="font-display italic text-foreground/80">talk</em>
-            </span>
-          </div>
+          <a href="/" className="flex items-center gap-2">
+            <img
+              src={jtalkLogo}
+              alt="J talk"
+              width={120}
+              height={40}
+              className="h-9 w-auto object-contain"
+            />
+          </a>
           <nav className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
             <a href="#create" className="hover:text-foreground transition">방 만들기</a>
             <a href="#join" className="hover:text-foreground transition">입장하기</a>
@@ -105,15 +106,17 @@ const Index = () => {
       </header>
 
       {/* Hero */}
-      <section className="container pt-20 pb-16 md:pt-28 md:pb-24 text-center">
-        <p className="eyebrow mb-6">J · TALK · REALTIME · LOUNGE</p>
-        <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl leading-[1.1] max-w-4xl mx-auto">
-          J <em className="font-display italic text-foreground/90">talk</em>,<br />
-          <em className="font-display italic text-foreground/90">conversations</em> in real time
-        </h1>
-        <p className="mt-8 text-base md:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-          강사의 메시지가 즉시 도착하고, 학습자의 의견과 익명투표가 한 화면에서 흐릅니다.
-          별도 설치 없이 패스코드 한 번으로 대화를 시작하세요.
+      <section className="container pt-16 pb-16 md:pt-24 md:pb-24 text-center">
+        <p className="eyebrow mb-8">REALTIME · LOUNGE · SINCE 2026</p>
+        <img
+          src={jtalkLogo}
+          alt="J talk"
+          width={1280}
+          height={640}
+          className="mx-auto h-40 md:h-56 lg:h-64 w-auto object-contain"
+        />
+        <p className="mt-6 font-display italic text-2xl md:text-3xl text-foreground/80">
+          Where every voice finds its room.
         </p>
         <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
           <a href="#join" className="pill-dark">입장하기 <ArrowRight className="ml-1" /></a>
