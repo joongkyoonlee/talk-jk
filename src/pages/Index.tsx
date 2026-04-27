@@ -124,7 +124,7 @@ const Index = () => {
       <section className="container pb-24 grid gap-6 md:grid-cols-2 max-w-5xl">
         <form id="create" onSubmit={handleCreate} className="surface-card p-8 md:p-10 animate-fade-up">
           <p className="eyebrow">01 · For Instructor</p>
-          <h2 className="font-serif text-2xl md:text-3xl mt-3 mb-6">소통방 만들기</h2>
+          <h2 className="font-serif text-2xl md:text-3xl mt-3 mb-6">새 대화방 만들기</h2>
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="c-title">교육 제목</Label>
