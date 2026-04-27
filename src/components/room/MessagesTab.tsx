@@ -154,7 +154,41 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
   }
 
   function handlePaste(e: React.ClipboardEvent<HTMLTextAreaElement>) {
-    const items = e.clipboardData?.items;
+    const cd = e.clipboardData;
+    if (!cd) return;
+
+    // 1) Prefer text (plain or HTML) — handles ChatGPT/웹 페이지 복사
+    const plain = cd.getData("text/plain");
+    const html = cd.getData("text/html");
+    if (plain && plain.trim()) {
+      // Let the browser insert plain text natively (avoids pasting rich HTML/images)
+      e.preventDefault();
+      const textarea = e.currentTarget;
+      const start = textarea.selectionStart ?? body.length;
+      const end = textarea.selectionEnd ?? body.length;
+      const next = body.slice(0, start) + plain + body.slice(end);
+      setBody(next);
+      // Restore caret position after React updates value
+      requestAnimationFrame(() => {
+        const pos = start + plain.length;
+        textarea.setSelectionRange(pos, pos);
+      });
+      return;
+    }
+    if (html && html.trim()) {
+      // Strip tags as a fallback if only HTML is provided
+      const tmp = document.createElement("div");
+      tmp.innerHTML = html;
+      const text = (tmp.textContent || tmp.innerText || "").trim();
+      if (text) {
+        e.preventDefault();
+        setBody((prev) => prev + text);
+        return;
+      }
+    }
+
+    // 2) Otherwise, fall back to image-from-clipboard behavior
+    const items = cd.items;
     if (!items) return;
     for (const item of Array.from(items)) {
       if (item.kind === "file" && item.type.startsWith("image/")) {
