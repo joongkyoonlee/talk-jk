@@ -424,7 +424,7 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
         )}
 
         {/* Messages list (messages + polls merged by time) */}
-        <div className="flex-1 overflow-y-auto px-5 py-5 space-y-3">
+        <div className="flex-1 overflow-y-auto px-5 py-5 space-y-3 bg-[hsl(var(--ivory-deep)/0.45)]">
           {(() => {
             const timeline: TimelineItem[] = [
               ...messages.map((m) => ({ kind: "message" as const, id: `m-${m.id}`, created_at: m.created_at, data: m })),
