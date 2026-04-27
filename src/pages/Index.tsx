@@ -208,7 +208,7 @@ const Index = () => {
 
       <footer className="border-t border-border/60">
         <div className="container py-10 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
-          <span className="font-display tracking-[0.3em] uppercase">Edu Realtime Lounge</span>
+          <span className="font-display tracking-[0.3em] uppercase">J · talk · Lounge</span>
           <span>데모 환경 · 입력된 데이터는 모든 참여자가 열람할 수 있습니다.</span>
           <a href="/admin" className="hover:text-foreground transition underline-offset-4 hover:underline">
             관리자
