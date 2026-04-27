@@ -549,7 +549,7 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
                             m.body || m.image_url ? "pr-9" : ""
                           } ${
                             isMine
-                              ? "bg-primary text-primary-foreground rounded-br-md"
+                              ? "bg-accent text-accent-foreground rounded-br-md"
                               : isInstructorMsg
                                 ? "bg-gold-soft/30 text-foreground border border-accent/20 rounded-bl-md"
                                 : "bg-card text-foreground border border-border rounded-bl-md"
