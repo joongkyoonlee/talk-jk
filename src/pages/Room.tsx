@@ -240,7 +240,7 @@ const RoomPage = () => {
         <div className="container py-4">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div className="min-w-0 flex-1">
-              <p className="eyebrow">{room?.title || "교육 소통방"}</p>
+              <p className="eyebrow">{room?.title || "J talk"}</p>
               <h1 className="font-serif text-2xl md:text-3xl mt-1 truncate">
                 {room?.room_name || "—"}
               </h1>

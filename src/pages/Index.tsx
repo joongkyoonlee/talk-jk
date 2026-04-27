@@ -78,8 +78,8 @@ const Index = () => {
       {/* Top executive ribbon */}
       <div className="border-b border-border/60 bg-background/60 backdrop-blur">
         <div className="container flex h-9 items-center justify-between text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
-          <span>Edu · Realtime · Lounge</span>
-          <span className="hidden sm:inline">실시간 교육 소통 플랫폼</span>
+          <span>J · talk · Lounge</span>
+          <span className="hidden sm:inline">Conversations, in real time</span>
         </div>
       </div>
 
@@ -87,30 +87,33 @@ const Index = () => {
       <header className="border-b border-border/60">
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-full bg-primary text-primary-foreground grid place-items-center font-display text-base">
-              E
+            <div className="relative h-9 w-9 rounded-full bg-primary text-primary-foreground grid place-items-center font-display text-lg shadow-pill">
+              <span className="italic leading-none -mt-0.5">J</span>
+              <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-accent ring-2 ring-background" />
             </div>
-            <span className="font-serif text-lg">교육 소통방</span>
+            <span className="font-serif text-lg tracking-tight">
+              J <em className="font-display italic text-foreground/80">talk</em>
+            </span>
           </div>
           <nav className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
-            <a href="#create" className="hover:text-foreground transition">소통방 만들기</a>
+            <a href="#create" className="hover:text-foreground transition">방 만들기</a>
             <a href="#join" className="hover:text-foreground transition">입장하기</a>
             <a href="#features" className="hover:text-foreground transition">기능</a>
           </nav>
-          <a href="#create" className="pill-dark hidden sm:inline-flex">소통방 만들기 <Sparkles className="ml-1" /></a>
+          <a href="#create" className="pill-dark hidden sm:inline-flex">방 만들기 <Sparkles className="ml-1" /></a>
         </div>
       </header>
 
       {/* Hero */}
       <section className="container pt-20 pb-16 md:pt-28 md:pb-24 text-center">
-        <p className="eyebrow mb-6">EDUCATION · REALTIME · ROOM</p>
+        <p className="eyebrow mb-6">J · TALK · REALTIME · LOUNGE</p>
         <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl leading-[1.1] max-w-4xl mx-auto">
-          교육 소통방,<br />
-          <em className="font-display italic text-foreground/90">실시간으로 함께</em>
+          J <em className="font-display italic text-foreground/90">talk</em>,<br />
+          <em className="font-display italic text-foreground/90">conversations</em> in real time
         </h1>
         <p className="mt-8 text-base md:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-          강사의 메시지가 즉시 도착하고, 수강생의 의견과 익명투표가 한 화면에서 흐릅니다.
-          별도 설치 없이 패스코드 한 번으로 시작하세요.
+          강사의 메시지가 즉시 도착하고, 학습자의 의견과 익명투표가 한 화면에서 흐릅니다.
+          별도 설치 없이 패스코드 한 번으로 대화를 시작하세요.
         </p>
         <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
           <a href="#join" className="pill-dark">입장하기 <ArrowRight className="ml-1" /></a>
@@ -121,7 +124,7 @@ const Index = () => {
       <section className="container pb-24 grid gap-6 md:grid-cols-2 max-w-5xl">
         <form id="create" onSubmit={handleCreate} className="surface-card p-8 md:p-10 animate-fade-up">
           <p className="eyebrow">01 · For Instructor</p>
-          <h2 className="font-serif text-2xl md:text-3xl mt-3 mb-6">소통방 만들기</h2>
+          <h2 className="font-serif text-2xl md:text-3xl mt-3 mb-6">새 대화방 만들기</h2>
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="c-title">교육 제목</Label>
@@ -136,7 +139,7 @@ const Index = () => {
               <Input id="c-nick" name="nickname" placeholder="예) 김강사" required />
             </div>
             <button disabled={creating} className="pill-dark w-full mt-2 disabled:opacity-60">
-              {creating ? "생성 중..." : "소통방 개설하기"}
+              {creating ? "생성 중..." : "대화방 개설하기"}
               <ArrowRight />
             </button>
             <p className="text-xs text-muted-foreground text-center mt-2">
@@ -205,7 +208,7 @@ const Index = () => {
 
       <footer className="border-t border-border/60">
         <div className="container py-10 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
-          <span className="font-display tracking-[0.3em] uppercase">Edu Realtime Lounge</span>
+          <span className="font-display tracking-[0.3em] uppercase">J · talk · Lounge</span>
           <span>데모 환경 · 입력된 데이터는 모든 참여자가 열람할 수 있습니다.</span>
           <a href="/admin" className="hover:text-foreground transition underline-offset-4 hover:underline">
             관리자
