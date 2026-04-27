@@ -139,7 +139,7 @@ const Index = () => {
               <Input id="c-nick" name="nickname" placeholder="예) 김강사" required />
             </div>
             <button disabled={creating} className="pill-dark w-full mt-2 disabled:opacity-60">
-              {creating ? "생성 중..." : "소통방 개설하기"}
+              {creating ? "생성 중..." : "대화방 개설하기"}
               <ArrowRight />
             </button>
             <p className="text-xs text-muted-foreground text-center mt-2">
