@@ -600,11 +600,9 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
                             />
                           )}
                           {m.file_url && (
-                            <a
-                              href={m.file_url}
-                              target="_blank"
-                              rel="noreferrer"
-                              download={m.file_name || undefined}
+                            <button
+                              type="button"
+                              onClick={() => downloadFile(m.file_url!, m.file_name || "download")}
                               className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm transition max-w-full ${
                                 m.body || m.image_url ? "mt-2" : ""
                               } ${
@@ -621,7 +619,7 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
                                 </span>
                               )}
                               <Download className="h-3.5 w-3.5 shrink-0 opacity-80" />
-                            </a>
+                            </button>
                           )}
                         </div>
                         <span className="text-[10px] text-muted-foreground mt-1 px-1">
