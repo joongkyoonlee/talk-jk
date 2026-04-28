@@ -60,6 +60,24 @@ async function copyImageToClipboard(url: string): Promise<boolean> {
   }
 }
 
+async function downloadFile(url: string, filename: string) {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("fetch failed");
+    const blob = await res.blob();
+    const objectUrl = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = objectUrl;
+    a.download = filename || "download";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+  } catch {
+    toast({ title: "다운로드 실패", description: "다시 시도해 주세요." });
+  }
+}
+
 async function copyMessageText(m: MessageRow) {
   // Image-only message: copy the image bitmap itself
   if (m.image_url && !m.body) {
