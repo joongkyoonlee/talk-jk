@@ -520,11 +520,9 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
                           />
                         )}
                         {m.file_url && (
-                          <a
-                            href={m.file_url}
-                            target="_blank"
-                            rel="noreferrer"
-                            download={m.file_name || undefined}
+                          <button
+                            type="button"
+                            onClick={() => downloadFile(m.file_url!, m.file_name || "download")}
                             className="mt-3 inline-flex items-center gap-2 rounded-xl border border-accent/30 bg-background/60 px-3 py-2 text-sm hover:bg-background transition max-w-full"
                           >
                             <FileText className="h-4 w-4 text-accent shrink-0" />
@@ -535,7 +533,7 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
                               </span>
                             )}
                             <Download className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                          </a>
+                          </button>
                         )}
                       </div>
                     );
