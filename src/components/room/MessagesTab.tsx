@@ -130,6 +130,7 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
 
   const listEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setNoticeDraft(room.notice || "");
@@ -301,10 +302,7 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
     setBody("");
     setFile(null);
     setAttachment(null);
-    const fileInput = document.getElementById("msg-attach") as HTMLInputElement | null;
-    if (fileInput) fileInput.value = "";
-    const attachInput = document.getElementById("msg-attach") as HTMLInputElement | null;
-    if (attachInput) attachInput.value = "";
+    if (fileInputRef.current) fileInputRef.current.value = "";
     textareaRef.current?.focus();
   }
 
@@ -682,17 +680,20 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
             </div>
           )}
           <div className="flex items-end gap-2">
-            <label
-              htmlFor="msg-attach"
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
               className="shrink-0 inline-flex h-10 w-10 items-center justify-center rounded-full border border-border text-muted-foreground hover:text-foreground hover:border-foreground/40 transition cursor-pointer"
               title="파일 첨부 (이미지 20MB · 기타 파일 50MB)"
+              aria-label="파일 첨부"
             >
               <Paperclip className="h-4 w-4" />
-            </label>
+            </button>
             <input
+              ref={fileInputRef}
               id="msg-attach"
               type="file"
-              className="sr-only"
+              className="hidden"
               onChange={handleFileChange}
             />
             <Textarea
