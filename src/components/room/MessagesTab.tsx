@@ -176,53 +176,51 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
     const cd = e.clipboardData;
     if (!cd) return;
 
-    // 1) Prefer text (plain or HTML) — handles ChatGPT/웹 페이지 복사
+    // 1) Prefer image-from-clipboard (screenshot / 이미지 복사)
+    const items = cd.items;
+    if (items) {
+      for (const item of Array.from(items)) {
+        if (item.kind === "file" && item.type.startsWith("image/")) {
+          const blob = item.getAsFile();
+          if (!blob) continue;
+          const ext = blob.type.split("/")[1] || "png";
+          const pasted = new File([blob], `pasted_${Date.now()}.${ext}`, { type: blob.type });
+          if (acceptFile(pasted)) {
+            e.preventDefault();
+            toast({ title: "붙여넣은 이미지가 첨부되었습니다." });
+          }
+          return;
+        }
+      }
+    }
+
+    // 2) Otherwise, paste plain text (handles ChatGPT/웹페이지 복사)
     const plain = cd.getData("text/plain");
-    const html = cd.getData("text/html");
     if (plain && plain.trim()) {
-      // Let the browser insert plain text natively (avoids pasting rich HTML/images)
       e.preventDefault();
       const textarea = e.currentTarget;
       const start = textarea.selectionStart ?? body.length;
       const end = textarea.selectionEnd ?? body.length;
       const next = body.slice(0, start) + plain + body.slice(end);
       setBody(next);
-      // Restore caret position after React updates value
       requestAnimationFrame(() => {
         const pos = start + plain.length;
         textarea.setSelectionRange(pos, pos);
       });
       return;
     }
+    const html = cd.getData("text/html");
     if (html && html.trim()) {
-      // Strip tags as a fallback if only HTML is provided
       const tmp = document.createElement("div");
       tmp.innerHTML = html;
       const text = (tmp.textContent || tmp.innerText || "").trim();
       if (text) {
         e.preventDefault();
         setBody((prev) => prev + text);
-        return;
-      }
-    }
-
-    // 2) Otherwise, fall back to image-from-clipboard behavior
-    const items = cd.items;
-    if (!items) return;
-    for (const item of Array.from(items)) {
-      if (item.kind === "file" && item.type.startsWith("image/")) {
-        const blob = item.getAsFile();
-        if (!blob) continue;
-        const ext = blob.type.split("/")[1] || "png";
-        const pasted = new File([blob], `pasted_${Date.now()}.${ext}`, { type: blob.type });
-        if (acceptFile(pasted)) {
-          e.preventDefault();
-          toast({ title: "붙여넣은 이미지가 첨부되었습니다." });
-        }
-        break;
       }
     }
   }
+
 
   async function uploadImage(f: File): Promise<string | null> {
     const ext = f.name.split(".").pop() || "bin";
