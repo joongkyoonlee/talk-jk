@@ -302,10 +302,7 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
     setBody("");
     setFile(null);
     setAttachment(null);
-    const fileInput = document.getElementById("msg-attach") as HTMLInputElement | null;
-    if (fileInput) fileInput.value = "";
-    const attachInput = document.getElementById("msg-attach") as HTMLInputElement | null;
-    if (attachInput) attachInput.value = "";
+    if (fileInputRef.current) fileInputRef.current.value = "";
     textareaRef.current?.focus();
   }
 
