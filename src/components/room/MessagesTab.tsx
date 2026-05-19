@@ -130,6 +130,7 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
 
   const listEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setNoticeDraft(room.notice || "");
