@@ -132,6 +132,21 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  function resetFileInput() {
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  function openFilePicker() {
+    const input = fileInputRef.current;
+    if (!input) return;
+    input.value = "";
+    if (typeof input.showPicker === "function") {
+      input.showPicker();
+      return;
+    }
+    input.click();
+  }
+
   useEffect(() => {
     setNoticeDraft(room.notice || "");
   }, [room.notice]);
@@ -165,10 +180,11 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
     if (!f) {
       setFile(null);
       setAttachment(null);
+      resetFileInput();
       return;
     }
     if (!acceptFile(f)) {
-      e.target.value = "";
+      resetFileInput();
     }
   }
 
@@ -300,7 +316,7 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
     setBody("");
     setFile(null);
     setAttachment(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
+    resetFileInput();
     textareaRef.current?.focus();
   }
 
@@ -646,8 +662,7 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
                     type="button"
                     onClick={() => {
                       setFile(null);
-                      const el = document.getElementById("msg-attach") as HTMLInputElement | null;
-                      if (el) el.value = "";
+                       resetFileInput();
                     }}
                     className="text-muted-foreground hover:text-foreground shrink-0"
                   >
@@ -666,8 +681,7 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
                     type="button"
                     onClick={() => {
                       setAttachment(null);
-                      const el = document.getElementById("msg-attach") as HTMLInputElement | null;
-                      if (el) el.value = "";
+                       resetFileInput();
                     }}
                     className="text-muted-foreground hover:text-foreground shrink-0"
                   >
@@ -680,7 +694,7 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
           <div className="flex items-end gap-2">
             <button
               type="button"
-              onClick={() => fileInputRef.current?.click()}
+              onClick={openFilePicker}
               className="shrink-0 inline-flex h-10 w-10 items-center justify-center rounded-full border border-border text-muted-foreground hover:text-foreground hover:border-foreground/40 transition cursor-pointer"
               title="파일 첨부 (이미지 20MB · 기타 파일 50MB)"
               aria-label="파일 첨부"
@@ -691,7 +705,9 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
               ref={fileInputRef}
               id="msg-attach"
               type="file"
-              className="hidden"
+              tabIndex={-1}
+              aria-hidden="true"
+              className="absolute -left-[9999px] h-px w-px opacity-0"
               onChange={handleFileChange}
             />
             <Textarea
