@@ -136,17 +136,6 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
-  function openFilePicker() {
-    const input = fileInputRef.current;
-    if (!input) return;
-    input.value = "";
-    if (typeof input.showPicker === "function") {
-      input.showPicker();
-      return;
-    }
-    input.click();
-  }
-
   useEffect(() => {
     setNoticeDraft(room.notice || "");
   }, [room.notice]);
@@ -692,24 +681,20 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
             </div>
           )}
           <div className="flex items-end gap-2">
-            <button
-              type="button"
-              onClick={openFilePicker}
-              className="shrink-0 inline-flex h-10 w-10 items-center justify-center rounded-full border border-border text-muted-foreground hover:text-foreground hover:border-foreground/40 transition cursor-pointer"
+            <label
+              className="relative shrink-0 inline-flex h-10 w-10 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-border text-muted-foreground transition hover:border-foreground/40 hover:text-foreground"
               title="파일 첨부 (이미지 20MB · 기타 파일 50MB)"
               aria-label="파일 첨부"
             >
-              <Paperclip className="h-4 w-4" />
-            </button>
-            <input
-              ref={fileInputRef}
-              id="msg-attach"
-              type="file"
-              tabIndex={-1}
-              aria-hidden="true"
-              className="absolute -left-[9999px] h-px w-px opacity-0"
-              onChange={handleFileChange}
-            />
+              <Paperclip className="h-4 w-4 pointer-events-none" />
+              <input
+                ref={fileInputRef}
+                id="msg-attach"
+                type="file"
+                className="absolute inset-0 z-10 cursor-pointer opacity-0"
+                onChange={handleFileChange}
+              />
+            </label>
             <Textarea
               ref={textareaRef}
               value={body}
