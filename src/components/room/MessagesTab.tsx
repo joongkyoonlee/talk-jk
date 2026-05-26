@@ -21,6 +21,23 @@ const MAX_IMAGE_SIZE = 20 * 1024 * 1024;
 const MAX_FILE_SIZE = 50 * 1024 * 1024;
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 
+function getFileExtension(file: File, fallback = "bin") {
+  const fromName = file.name.split(".").pop()?.trim().toLowerCase();
+  if (fromName && /^[a-z0-9]+$/.test(fromName)) return fromName;
+
+  const fromType = file.type.split("/").pop()?.trim().toLowerCase();
+  if (fromType && /^[a-z0-9.+-]+$/.test(fromType)) {
+    return fromType.replace(/[^a-z0-9]/g, "") || fallback;
+  }
+
+  return fallback;
+}
+
+function createStoragePath(roomId: string, file: File, fallback = "bin") {
+  const ext = getFileExtension(file, fallback);
+  return `${roomId}/${Date.now()}_${crypto.randomUUID().replace(/-/g, "")}.${ext}`;
+}
+
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
@@ -228,8 +245,7 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
 
 
   async function uploadImage(f: File): Promise<string | null> {
-    const ext = f.name.split(".").pop() || "bin";
-    const path = `${room.id}/${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const path = createStoragePath(room.id, f, "png");
     const { error } = await supabase.storage.from("room-images").upload(path, f, {
       contentType: f.type,
       upsert: false,
@@ -243,8 +259,7 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
   }
 
   async function uploadFile(f: File): Promise<string | null> {
-    const safeName = f.name.replace(/[^\w.\-가-힣]/g, "_");
-    const path = `${room.id}/${Date.now()}_${Math.random().toString(36).slice(2, 8)}_${safeName}`;
+    const path = createStoragePath(room.id, f);
     const { error } = await supabase.storage.from("room-files").upload(path, f, {
       contentType: f.type || "application/octet-stream",
       upsert: false,
