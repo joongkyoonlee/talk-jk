@@ -38,6 +38,31 @@ function createStoragePath(roomId: string, file: File, fallback = "bin") {
   return `${roomId}/${Date.now()}_${crypto.randomUUID().replace(/-/g, "")}.${ext}`;
 }
 
+function getClipboardFile(data: DataTransfer): File | null {
+  const directFile = data.files?.[0];
+  if (directFile) return directFile;
+
+  for (const item of Array.from(data.items || [])) {
+    if (item.kind !== "file") continue;
+    const file = item.getAsFile();
+    if (file) return file;
+  }
+
+  return null;
+}
+
+function createClipboardAttachment(file: File): File {
+  const name = file.name?.trim();
+  if (name) return file;
+
+  const isImage = file.type.startsWith("image/");
+  const ext = getFileExtension(file, isImage ? "png" : "bin");
+  const prefix = isImage ? "pasted" : "attachment";
+  return new File([file], `${prefix}_${Date.now()}.${ext}`, {
+    type: file.type || "application/octet-stream",
+  });
+}
+
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
@@ -198,25 +223,20 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
     const cd = e.clipboardData;
     if (!cd) return;
 
-    // 1) Prefer image-from-clipboard (screenshot / 이미지 복사)
-    const items = cd.items;
-    if (items) {
-      for (const item of Array.from(items)) {
-        if (item.kind === "file" && item.type.startsWith("image/")) {
-          const blob = item.getAsFile();
-          if (!blob) continue;
-          const ext = blob.type.split("/")[1] || "png";
-          const pasted = new File([blob], `pasted_${Date.now()}.${ext}`, { type: blob.type });
-          if (acceptFile(pasted)) {
-            e.preventDefault();
-            toast({ title: "붙여넣은 이미지가 첨부되었습니다." });
-          }
-          return;
-        }
+    const pastedFile = getClipboardFile(cd);
+    if (pastedFile) {
+      const normalizedFile = createClipboardAttachment(pastedFile);
+      if (acceptFile(normalizedFile)) {
+        e.preventDefault();
+        toast({
+          title: normalizedFile.type.startsWith("image/")
+            ? "붙여넣은 이미지가 첨부되었습니다."
+            : "붙여넣은 파일이 첨부되었습니다.",
+        });
       }
+      return;
     }
 
-    // 2) Otherwise, paste plain text (handles ChatGPT/웹페이지 복사)
     const plain = cd.getData("text/plain");
     if (plain && plain.trim()) {
       e.preventDefault();
@@ -244,32 +264,40 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
   }
 
 
-  async function uploadImage(f: File): Promise<string | null> {
-    const path = createStoragePath(room.id, f, "png");
-    const { error } = await supabase.storage.from("room-images").upload(path, f, {
-      contentType: f.type,
-      upsert: false,
-    });
-    if (error) {
-      toast({ title: "이미지 업로드 실패", description: error.message });
-      return null;
-    }
-    const { data } = supabase.storage.from("room-images").getPublicUrl(path);
-    return data.publicUrl;
-  }
-
-  async function uploadFile(f: File): Promise<string | null> {
-    const path = createStoragePath(room.id, f);
-    const { error } = await supabase.storage.from("room-files").upload(path, f, {
+  async function uploadToBucket(bucket: "room-images" | "room-files", f: File, fallback: string) {
+    let path = createStoragePath(room.id, f, fallback);
+    let { error } = await supabase.storage.from(bucket).upload(path, f, {
       contentType: f.type || "application/octet-stream",
       upsert: false,
     });
+
+    if (error?.message?.includes("Invalid key")) {
+      path = `${room.id}/${crypto.randomUUID().replace(/-/g, "")}.${getFileExtension(f, fallback)}`;
+      const retry = await supabase.storage.from(bucket).upload(path, f, {
+        contentType: f.type || "application/octet-stream",
+        upsert: false,
+      });
+      error = retry.error;
+    }
+
     if (error) {
-      toast({ title: "파일 업로드 실패", description: error.message });
+      toast({
+        title: bucket === "room-images" ? "이미지 업로드 실패" : "파일 업로드 실패",
+        description: error.message,
+      });
       return null;
     }
-    const { data } = supabase.storage.from("room-files").getPublicUrl(path);
+
+    const { data } = supabase.storage.from(bucket).getPublicUrl(path);
     return data.publicUrl;
+  }
+
+  async function uploadImage(f: File): Promise<string | null> {
+    return uploadToBucket("room-images", f, "png");
+  }
+
+  async function uploadFile(f: File): Promise<string | null> {
+    return uploadToBucket("room-files", f, "bin");
   }
 
   async function handleSend(e?: React.FormEvent) {
