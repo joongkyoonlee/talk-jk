@@ -24,7 +24,7 @@ import { linkify } from "@/lib/linkify";
 import PollCard from "./PollCard";
 
 const MAX_IMAGE_SIZE = 20 * 1024 * 1024;
-const MAX_FILE_SIZE = 50 * 1024 * 1024;
+const MAX_FILE_SIZE = 25 * 1024 * 1024;
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 
 function getFileExtension(file: File, fallback = "bin") {
@@ -37,11 +37,6 @@ function getFileExtension(file: File, fallback = "bin") {
   }
 
   return fallback;
-}
-
-function createStoragePath(roomId: string, file: File, fallback = "bin") {
-  const ext = getFileExtension(file, fallback);
-  return `${roomId}/${Date.now()}_${crypto.randomUUID().replace(/-/g, "")}.${ext}`;
 }
 
 function getClipboardFile(data: DataTransfer): File | null {
@@ -235,7 +230,7 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
       return true;
     }
     if (f.size > MAX_FILE_SIZE) {
-      toast({ title: "파일이 50MB를 초과합니다." });
+      toast({ title: "파일이 25MB를 초과합니다." });
       return false;
     }
     setAttachment(f);
@@ -842,7 +837,7 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
           <div className="flex items-end gap-2">
             <label
               className="relative shrink-0 inline-flex h-10 w-10 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-border text-muted-foreground transition hover:border-foreground/40 hover:text-foreground"
-              title="파일 첨부 (이미지 20MB · 기타 파일 50MB)"
+              title="파일 첨부 (이미지 20MB · 기타 파일 25MB)"
               aria-label="파일 첨부"
             >
               <Paperclip className="h-4 w-4 pointer-events-none" />
