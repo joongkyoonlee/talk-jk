@@ -391,20 +391,27 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
     }
   }
 
-  async function handleNoticeSave() {
+  async function saveNotice(next: string) {
     setSavingNotice(true);
-    const { error } = await supabase.from("rooms").update({ notice: noticeDraft }).eq("id", room.id);
+    const { error } = await supabase.rpc("update_room_notice", {
+      p_room_id: room.id,
+      p_passcode: session.passcode,
+      p_notice: next,
+    });
     setSavingNotice(false);
-    if (error) return toast({ title: "공지 저장 실패", description: error.message });
+    return error;
+  }
+
+  async function handleNoticeSave() {
+    const error = await saveNotice(noticeDraft);
+    if (error) return toast({ title: "공지 저장 실패", description: "권한이 없거나 저장에 실패했습니다." });
     toast({ title: "공지를 저장했습니다." });
     setNoticeOpen(false);
   }
 
   async function handleNoticeClear() {
-    setSavingNotice(true);
-    const { error } = await supabase.from("rooms").update({ notice: "" }).eq("id", room.id);
-    setSavingNotice(false);
-    if (error) return toast({ title: "공지 삭제 실패", description: error.message });
+    const error = await saveNotice("");
+    if (error) return toast({ title: "공지 삭제 실패", description: "권한이 없거나 삭제에 실패했습니다." });
     setNoticeDraft("");
     toast({ title: "공지를 삭제했습니다." });
     setNoticeOpen(false);
