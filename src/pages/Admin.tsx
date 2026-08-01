@@ -149,7 +149,7 @@ const AdminPage = () => {
             <h1 className="font-serif text-2xl mt-1">소통방 전체 현황</h1>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={loadRooms} className="pill-outline !px-4 !py-2 text-sm" disabled={loading}>
+            <button onClick={() => void loadRooms()} className="pill-outline !px-4 !py-2 text-sm" disabled={loading}>
               <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} /> 새로고침
             </button>
             <Link to="/" className="pill-outline !px-4 !py-2 text-sm">
