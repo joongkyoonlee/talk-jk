@@ -684,7 +684,7 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
                         </div>
                         <div
                           className={`group relative rounded-2xl px-4 py-2.5 shadow-sm ${
-                            m.body || m.image_url ? "pr-9" : ""
+                            isInstructor ? "pr-16" : m.body || m.image_url ? "pr-9" : ""
                           } ${
                             isMine
                               ? "bg-accent text-accent-foreground rounded-br-md"
