@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Image as ImageIcon, Paperclip, Pin, Send, X, Megaphone, FileText, Download, Copy } from "lucide-react";
+import { Image as ImageIcon, Paperclip, Pin, Send, X, Megaphone, FileText, Download, Copy, FileDown, Trash2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
@@ -9,6 +9,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import type { MessageRow, Poll, Room } from "@/pages/Room";
 import type { RoomSession } from "@/lib/session";
