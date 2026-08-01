@@ -302,31 +302,26 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
 
 
   async function uploadToBucket(bucket: "room-images" | "room-files", f: File, fallback: string) {
-    let path = createStoragePath(room.id, f, fallback);
-    let { error } = await supabase.storage.from(bucket).upload(path, f, {
-      contentType: f.type || "application/octet-stream",
-      upsert: false,
-    });
+    const form = new FormData();
+    form.append("roomId", room.id);
+    form.append("passcode", session.passcode);
+    form.append("bucket", bucket);
+    form.append("file", f, f.name || `upload.${getFileExtension(f, fallback)}`);
 
-    if (error?.message?.includes("Invalid key")) {
-      path = `${room.id}/${crypto.randomUUID().replace(/-/g, "")}.${getFileExtension(f, fallback)}`;
-      const retry = await supabase.storage.from(bucket).upload(path, f, {
-        contentType: f.type || "application/octet-stream",
-        upsert: false,
-      });
-      error = retry.error;
-    }
+    const { data, error } = await supabase.functions.invoke<{ url?: string; error?: string }>(
+      "room-upload",
+      { body: form },
+    );
 
-    if (error) {
+    if (error || !data?.url) {
       toast({
         title: bucket === "room-images" ? "이미지 업로드 실패" : "파일 업로드 실패",
-        description: error.message,
+        description: data?.error || "잠시 후 다시 시도해 주세요.",
       });
       return null;
     }
 
-    const { data } = supabase.storage.from(bucket).getPublicUrl(path);
-    return data.publicUrl;
+    return data.url;
   }
 
   async function uploadImage(f: File): Promise<string | null> {
