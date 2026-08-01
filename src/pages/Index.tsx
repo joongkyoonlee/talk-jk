@@ -33,7 +33,7 @@ const Index = () => {
     const { data, error } = await supabase
       .from("rooms")
       .insert({ title, room_name, host_nickname, passcode, notice: "" })
-      .select()
+      .select("id,title,room_name,host_nickname,notice,created_at")
       .single();
     setCreating(false);
     if (error || !data) {
@@ -42,12 +42,12 @@ const Index = () => {
     }
     saveSession({
       roomId: data.id,
-      passcode: data.passcode,
+      passcode,
       nickname: host_nickname,
       role: "instructor",
       clientId: newClientId(),
     });
-    toast({ title: `방이 생성되었습니다`, description: `패스코드 ${data.passcode}` });
+    toast({ title: `방이 생성되었습니다`, description: `패스코드 ${passcode}` });
     navigate("/room");
   }
 
@@ -60,12 +60,13 @@ const Index = () => {
     if (!/^\d{4}$/.test(pass)) return toast({ title: "패스코드는 숫자 4자리여야 합니다." });
     if (!nickname) nickname = newAnonymousName();
     setJoining(true);
-    const { data, error } = await supabase.from("rooms").select("*").eq("passcode", pass).maybeSingle();
+    const { data, error } = await supabase.rpc("join_room", { p_passcode: pass });
     setJoining(false);
-    if (error || !data) return toast({ title: "해당 패스코드의 방을 찾을 수 없습니다." });
+    const room = Array.isArray(data) ? data[0] : data;
+    if (error || !room) return toast({ title: "해당 패스코드의 방을 찾을 수 없습니다." });
     saveSession({
-      roomId: data.id,
-      passcode: data.passcode,
+      roomId: room.id,
+      passcode: pass,
       nickname,
       role,
       clientId: newClientId(),
