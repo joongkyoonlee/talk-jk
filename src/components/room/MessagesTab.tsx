@@ -430,6 +430,14 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
     toast({ title: "공지를 메시지로 발송했습니다." });
   }
 
+  async function handleDeleteMessage(m: MessageRow) {
+    if (!isInstructor) return;
+    if (!window.confirm("이 메시지를 삭제할까요? 되돌릴 수 없습니다.")) return;
+    const { error } = await supabase.from("messages").delete().eq("id", m.id);
+    if (error) return toast({ title: "삭제 실패", description: error.message });
+    toast({ title: "메시지를 삭제했습니다." });
+  }
+
   return (
     <div className="max-w-3xl mx-auto">
       <div className="surface-card overflow-hidden flex flex-col h-[calc(100vh-220px)] min-h-[520px]">
@@ -439,6 +447,39 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
             <h3 className="font-serif text-lg">실시간 메시지</h3>
             <span className="text-xs text-muted-foreground">· {messages.length}건</span>
           </div>
+          {isInstructor && (
+            <div className="flex items-center gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition"
+                  >
+                    <FileDown className="h-3.5 w-3.5" />
+                    내보내기
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-52">
+                  <DropdownMenuItem
+                    onClick={() => exportMessages(messages, room.room_name, "전체대화")}
+                  >
+                    전체 대화 내보내기
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() =>
+                      exportMessages(
+                        messages.filter((m) => m.role === "instructor"),
+                        room.room_name,
+                        "강사메시지",
+                      )
+                    }
+                  >
+                    강사 메시지만 내보내기
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          )}
           {isInstructor && (
             <Dialog open={noticeOpen} onOpenChange={setNoticeOpen}>
               <DialogTrigger asChild>
