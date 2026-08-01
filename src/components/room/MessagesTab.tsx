@@ -147,6 +147,37 @@ async function copyMessageText(m: MessageRow) {
   }
 }
 
+function messageToLine(m: MessageRow) {
+  const time = formatKoDate(m.created_at);
+  const who = `${m.nickname || "사용자"}${m.role === "instructor" ? "(강사)" : ""}`;
+  const tag = m.message_type === "announcement" ? " [공지]" : m.message_type === "opinion_reply" ? " [의견답변]" : "";
+  const parts: string[] = [];
+  if (m.body) parts.push(m.body);
+  if (m.image_url) parts.push(`[이미지] ${m.image_url}`);
+  if (m.file_url) parts.push(`[파일] ${m.file_name || "첨부"} ${m.file_url}`);
+  return `[${time}] ${who}${tag}\n${parts.join("\n") || "(내용 없음)"}\n`;
+}
+
+function exportMessages(rows: MessageRow[], roomName: string, label: string) {
+  if (!rows.length) {
+    toast({ title: "내보낼 메시지가 없습니다." });
+    return;
+  }
+  const header = `J talk · ${roomName}\n${label} (${rows.length}건)\n내보낸 시각: ${formatKoDate(new Date().toISOString())}\n${"=".repeat(48)}\n\n`;
+  const text = header + rows.map(messageToLine).join("\n");
+  const blob = new Blob(["\uFEFF" + text], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-");
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `jtalk_${label}_${stamp}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  toast({ title: `${label}을 내보냈습니다.` });
+}
+
 interface Props {
   room: Room;
   messages: MessageRow[];
