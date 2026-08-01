@@ -26,20 +26,14 @@ export default function PollsTab({ polls, session, isInstructor, roomId }: Props
     if (!q) return toast({ title: "질문을 입력하세요." });
     if (opts.length < 2) return toast({ title: "보기를 2개 이상 입력하세요." });
     setSubmitting(true);
-    const { data: poll, error } = await supabase
-      .from("polls")
-      .insert({ room_id: roomId, question: q, is_closed: false })
-      .select()
-      .single();
-    if (error || !poll) {
-      setSubmitting(false);
-      return toast({ title: "투표 생성 실패", description: error?.message });
-    }
-    const { error: optErr } = await supabase
-      .from("poll_options")
-      .insert(opts.map((option_text) => ({ poll_id: poll.id, option_text })));
+    const { error } = await supabase.rpc("create_room_poll", {
+      p_room_id: roomId,
+      p_passcode: session.passcode,
+      p_question: q,
+      p_options: opts,
+    });
     setSubmitting(false);
-    if (optErr) return toast({ title: "보기 저장 실패", description: optErr.message });
+    if (error) return toast({ title: "투표 생성 실패", description: "권한이 없거나 입력값이 올바르지 않습니다." });
     setQuestion("");
     setOptions(["", ""]);
     toast({ title: "익명투표를 만들었습니다." });
@@ -48,38 +42,36 @@ export default function PollsTab({ polls, session, isInstructor, roomId }: Props
   async function handleVote(pollId: string, optionId: string, existingVoteId?: string, currentOptionId?: string) {
     if (currentOptionId === optionId) return;
     setVoting(pollId);
-    if (existingVoteId) {
-      const { error } = await supabase
-        .from("poll_votes")
-        .update({ poll_option_id: optionId })
-        .eq("id", existingVoteId);
-      setVoting(null);
-      if (error) return toast({ title: "투표 변경 실패", description: error.message });
-      toast({ title: "투표를 변경했습니다." });
-      return;
-    }
-    const { error } = await supabase.from("poll_votes").insert({
-      poll_id: pollId,
-      poll_option_id: optionId,
-      voter_client_id: session.clientId,
+    const { error } = await supabase.rpc("cast_room_vote", {
+      p_room_id: roomId,
+      p_passcode: session.passcode,
+      p_poll_id: pollId,
+      p_option_id: optionId,
+      p_client_id: session.clientId,
     });
     setVoting(null);
-    if (error) {
-      if (error.code === "23505") return toast({ title: "이미 투표하셨습니다." });
-      return toast({ title: "투표 실패", description: error.message });
-    }
-    toast({ title: "투표가 반영되었습니다." });
+    if (error) return toast({ title: "투표 실패", description: "투표가 종료되었거나 권한이 없습니다." });
+    toast({ title: existingVoteId ? "투표를 변경했습니다." : "투표가 반영되었습니다." });
   }
 
   async function toggleClose(poll: Poll) {
-    const { error } = await supabase.from("polls").update({ is_closed: !poll.is_closed }).eq("id", poll.id);
-    if (error) toast({ title: "상태 변경 실패", description: error.message });
+    const { error } = await supabase.rpc("set_poll_closed", {
+      p_room_id: roomId,
+      p_passcode: session.passcode,
+      p_poll_id: poll.id,
+      p_closed: !poll.is_closed,
+    });
+    if (error) toast({ title: "상태 변경 실패", description: "권한이 없습니다." });
   }
 
   async function deletePoll(poll: Poll) {
     if (!confirm("이 투표를 삭제할까요?")) return;
-    const { error } = await supabase.from("polls").delete().eq("id", poll.id);
-    if (error) toast({ title: "삭제 실패", description: error.message });
+    const { error } = await supabase.rpc("delete_room_poll", {
+      p_room_id: roomId,
+      p_passcode: session.passcode,
+      p_poll_id: poll.id,
+    });
+    if (error) toast({ title: "삭제 실패", description: "권한이 없습니다." });
   }
 
   const palette = [
