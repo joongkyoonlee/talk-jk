@@ -37,35 +37,36 @@ export default function PollCard({ poll, session, isInstructor, compact }: Props
   async function handleVote(optionId: string) {
     if (myVote?.poll_option_id === optionId) return;
     setVoting(true);
-    if (myVote) {
-      const { error } = await supabase
-        .from("poll_votes")
-        .update({ poll_option_id: optionId })
-        .eq("id", myVote.id);
-      setVoting(false);
-      if (error) return toast({ title: "투표 변경 실패", description: error.message });
-      toast({ title: "투표를 변경했습니다." });
-      return;
-    }
-    const { error } = await supabase.from("poll_votes").insert({
-      poll_id: poll.id,
-      poll_option_id: optionId,
-      voter_client_id: session.clientId,
+    const { error } = await supabase.rpc("cast_room_vote", {
+      p_room_id: poll.room_id,
+      p_passcode: session.passcode,
+      p_poll_id: poll.id,
+      p_option_id: optionId,
+      p_client_id: session.clientId,
     });
     setVoting(false);
-    if (error) return toast({ title: "투표 실패", description: error.message });
-    toast({ title: "투표가 반영되었습니다." });
+    if (error) return toast({ title: "투표 실패", description: "투표가 종료되었거나 권한이 없습니다." });
+    toast({ title: myVote ? "투표를 변경했습니다." : "투표가 반영되었습니다." });
   }
 
   async function toggleClose() {
-    const { error } = await supabase.from("polls").update({ is_closed: !poll.is_closed }).eq("id", poll.id);
-    if (error) toast({ title: "상태 변경 실패", description: error.message });
+    const { error } = await supabase.rpc("set_poll_closed", {
+      p_room_id: poll.room_id,
+      p_passcode: session.passcode,
+      p_poll_id: poll.id,
+      p_closed: !poll.is_closed,
+    });
+    if (error) toast({ title: "상태 변경 실패", description: "권한이 없습니다." });
   }
 
   async function deletePoll() {
     if (!confirm("이 투표를 삭제할까요?")) return;
-    const { error } = await supabase.from("polls").delete().eq("id", poll.id);
-    if (error) toast({ title: "삭제 실패", description: error.message });
+    const { error } = await supabase.rpc("delete_room_poll", {
+      p_room_id: poll.room_id,
+      p_passcode: session.passcode,
+      p_poll_id: poll.id,
+    });
+    if (error) toast({ title: "삭제 실패", description: "권한이 없습니다." });
   }
 
   return (

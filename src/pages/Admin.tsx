@@ -24,8 +24,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-const ADMIN_PASSWORD = "aistudiolab2024";
-const STORAGE_KEY = "admin_authed_v1";
+const STORAGE_KEY = "admin_pw_v1";
 
 type RoomRow = {
   id: string;
@@ -36,61 +35,76 @@ type RoomRow = {
   created_at: string;
 };
 
+async function callAdmin<T>(password: string, body: Record<string, unknown>) {
+  const { data, error } = await supabase.functions.invoke<T & { error?: string }>("admin-rooms", {
+    body: { password, ...body },
+  });
+  if (error || data?.error) {
+    return { data: null, error: data?.error || "요청에 실패했습니다." };
+  }
+  return { data: data as T, error: null };
+}
+
 const AdminPage = () => {
-  const [authed, setAuthed] = useState<boolean>(() => sessionStorage.getItem(STORAGE_KEY) === "1");
+  const [password, setPassword] = useState<string>(() => sessionStorage.getItem(STORAGE_KEY) || "");
+  const [authed, setAuthed] = useState<boolean>(false);
   const [pw, setPw] = useState("");
   const [rooms, setRooms] = useState<RoomRow[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const loadRooms = async () => {
+  const loadRooms = async (pass = password) => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("rooms")
-      .select("id,title,room_name,host_nickname,passcode,created_at")
-      .order("created_at", { ascending: false });
-    if (error) {
-      toast({ title: "불러오기 실패", description: error.message });
-    } else {
-      setRooms((data || []) as RoomRow[]);
-    }
+    const { data, error } = await callAdmin<{ rooms: RoomRow[] }>(pass, { action: "list" });
     setLoading(false);
+    if (error || !data) {
+      toast({ title: "불러오기 실패", description: error || undefined });
+      return false;
+    }
+    setRooms(data.rooms || []);
+    return true;
   };
 
   useEffect(() => {
-    if (authed) loadRooms();
-  }, [authed]);
+    if (!password) return;
+    (async () => {
+      const ok = await loadRooms(password);
+      if (ok) setAuthed(true);
+      else {
+        sessionStorage.removeItem(STORAGE_KEY);
+        setPassword("");
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (pw === ADMIN_PASSWORD) {
-      sessionStorage.setItem(STORAGE_KEY, "1");
-      setAuthed(true);
-      setPw("");
-    } else {
+    const candidate = pw;
+    setLoading(true);
+    const { data, error } = await callAdmin<{ rooms: RoomRow[] }>(candidate, { action: "list" });
+    setLoading(false);
+    if (error || !data) {
       toast({ title: "비밀번호가 올바르지 않습니다." });
+      return;
     }
+    sessionStorage.setItem(STORAGE_KEY, candidate);
+    setPassword(candidate);
+    setRooms(data.rooms || []);
+    setAuthed(true);
+    setPw("");
   };
 
   const handleLogout = () => {
     sessionStorage.removeItem(STORAGE_KEY);
+    setPassword("");
     setAuthed(false);
+    setRooms([]);
   };
 
   const handleDelete = async (roomId: string) => {
-    const { data: pollRows } = await supabase.from("polls").select("id").eq("room_id", roomId);
-    const pollIds = (pollRows || []).map((p) => p.id);
-    if (pollIds.length) {
-      await supabase.from("poll_votes").delete().in("poll_id", pollIds);
-      await supabase.from("poll_options").delete().in("poll_id", pollIds);
-    }
-    await Promise.all([
-      supabase.from("polls").delete().eq("room_id", roomId),
-      supabase.from("messages").delete().eq("room_id", roomId),
-      supabase.from("opinions").delete().eq("room_id", roomId),
-    ]);
-    const { error } = await supabase.from("rooms").delete().eq("id", roomId);
+    const { error } = await callAdmin<{ ok: boolean }>(password, { action: "delete", roomId });
     if (error) {
-      toast({ title: "삭제 실패", description: error.message });
+      toast({ title: "삭제 실패", description: error });
       return;
     }
     toast({ title: "삭제되었습니다." });
@@ -135,7 +149,7 @@ const AdminPage = () => {
             <h1 className="font-serif text-2xl mt-1">소통방 전체 현황</h1>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={loadRooms} className="pill-outline !px-4 !py-2 text-sm" disabled={loading}>
+            <button onClick={() => void loadRooms()} className="pill-outline !px-4 !py-2 text-sm" disabled={loading}>
               <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} /> 새로고침
             </button>
             <Link to="/" className="pill-outline !px-4 !py-2 text-sm">
