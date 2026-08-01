@@ -249,7 +249,61 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      cast_room_vote: {
+        Args: {
+          p_client_id: string
+          p_option_id: string
+          p_passcode: string
+          p_poll_id: string
+          p_room_id: string
+        }
+        Returns: undefined
+      }
+      create_room_poll: {
+        Args: {
+          p_options: string[]
+          p_passcode: string
+          p_question: string
+          p_room_id: string
+        }
+        Returns: string
+      }
+      delete_room_message: {
+        Args: { p_message_id: string; p_passcode: string; p_room_id: string }
+        Returns: undefined
+      }
+      delete_room_poll: {
+        Args: { p_passcode: string; p_poll_id: string; p_room_id: string }
+        Returns: undefined
+      }
+      join_room: {
+        Args: { p_passcode: string }
+        Returns: {
+          created_at: string
+          host_nickname: string
+          id: string
+          notice: string
+          room_name: string
+          title: string
+        }[]
+      }
+      room_auth: {
+        Args: { p_passcode: string; p_room_id: string }
+        Returns: boolean
+      }
+      set_poll_closed: {
+        Args: {
+          p_closed: boolean
+          p_passcode: string
+          p_poll_id: string
+          p_room_id: string
+        }
+        Returns: undefined
+      }
+      update_room_notice: {
+        Args: { p_notice: string; p_passcode: string; p_room_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
