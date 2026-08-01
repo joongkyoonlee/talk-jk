@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Image as ImageIcon, Paperclip, Pin, Send, X, Megaphone, FileText, Download, Copy } from "lucide-react";
+import { Image as ImageIcon, Paperclip, Pin, Send, X, Megaphone, FileText, Download, Copy, FileDown, Trash2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
@@ -9,6 +9,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import type { MessageRow, Poll, Room } from "@/pages/Room";
 import type { RoomSession } from "@/lib/session";
@@ -145,6 +151,37 @@ async function copyMessageText(m: MessageRow) {
   } catch {
     toast({ title: "복사 실패", description: "브라우저 권한을 확인해 주세요." });
   }
+}
+
+function messageToLine(m: MessageRow) {
+  const time = formatKoDate(m.created_at);
+  const who = `${m.nickname || "사용자"}${m.role === "instructor" ? "(강사)" : ""}`;
+  const tag = m.message_type === "announcement" ? " [공지]" : m.message_type === "opinion_reply" ? " [의견답변]" : "";
+  const parts: string[] = [];
+  if (m.body) parts.push(m.body);
+  if (m.image_url) parts.push(`[이미지] ${m.image_url}`);
+  if (m.file_url) parts.push(`[파일] ${m.file_name || "첨부"} ${m.file_url}`);
+  return `[${time}] ${who}${tag}\n${parts.join("\n") || "(내용 없음)"}\n`;
+}
+
+function exportMessages(rows: MessageRow[], roomName: string, label: string) {
+  if (!rows.length) {
+    toast({ title: "내보낼 메시지가 없습니다." });
+    return;
+  }
+  const header = `J talk · ${roomName}\n${label} (${rows.length}건)\n내보낸 시각: ${formatKoDate(new Date().toISOString())}\n${"=".repeat(48)}\n\n`;
+  const text = header + rows.map(messageToLine).join("\n");
+  const blob = new Blob(["\uFEFF" + text], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-");
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `jtalk_${label}_${stamp}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  toast({ title: `${label}을 내보냈습니다.` });
 }
 
 interface Props {
@@ -399,6 +436,14 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
     toast({ title: "공지를 메시지로 발송했습니다." });
   }
 
+  async function handleDeleteMessage(m: MessageRow) {
+    if (!isInstructor) return;
+    if (!window.confirm("이 메시지를 삭제할까요? 되돌릴 수 없습니다.")) return;
+    const { error } = await supabase.from("messages").delete().eq("id", m.id);
+    if (error) return toast({ title: "삭제 실패", description: error.message });
+    toast({ title: "메시지를 삭제했습니다." });
+  }
+
   return (
     <div className="max-w-3xl mx-auto">
       <div className="surface-card overflow-hidden flex flex-col h-[calc(100vh-220px)] min-h-[520px]">
@@ -408,6 +453,39 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
             <h3 className="font-serif text-lg">실시간 메시지</h3>
             <span className="text-xs text-muted-foreground">· {messages.length}건</span>
           </div>
+          {isInstructor && (
+            <div className="flex items-center gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition"
+                  >
+                    <FileDown className="h-3.5 w-3.5" />
+                    내보내기
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-52">
+                  <DropdownMenuItem
+                    onClick={() => exportMessages(messages, room.room_name, "전체대화")}
+                  >
+                    전체 대화 내보내기
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() =>
+                      exportMessages(
+                        messages.filter((m) => m.role === "instructor"),
+                        room.room_name,
+                        "강사메시지",
+                      )
+                    }
+                  >
+                    강사 메시지만 내보내기
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          )}
           {isInstructor && (
             <Dialog open={noticeOpen} onOpenChange={setNoticeOpen}>
               <DialogTrigger asChild>
@@ -527,17 +605,31 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
                         key={item.id}
                         className="group relative rounded-2xl border border-accent/40 bg-gold-soft/20 p-4"
                       >
-                        {(m.body || m.image_url) && (
-                          <button
-                            type="button"
-                            onClick={() => copyMessageText(m)}
-                            title="메시지 복사"
-                            aria-label="메시지 복사"
-                            className="absolute top-2 right-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-background/70 text-muted-foreground hover:text-foreground hover:bg-background transition"
-                          >
-                            <Copy className="h-3.5 w-3.5" />
-                          </button>
-                        )}
+                        <div className="absolute top-2 right-2 flex items-center gap-1">
+                          {(m.body || m.image_url) && (
+                            <button
+                              type="button"
+                              onClick={() => copyMessageText(m)}
+                              title="메시지 복사"
+                              aria-label="메시지 복사"
+                              className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-background/70 text-muted-foreground hover:text-foreground hover:bg-background transition"
+                            >
+                              <Copy className="h-3.5 w-3.5" />
+                            </button>
+                          )}
+                          {isInstructor && (
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteMessage(m)}
+                              title="메시지 삭제"
+                              aria-label="메시지 삭제"
+                              className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-background/70 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          )}
+                        </div>
+
                         <div className="flex items-center justify-between gap-2 flex-wrap">
                           <div className="flex items-center gap-2">
                             <Megaphone className="h-4 w-4 text-accent" />
@@ -606,7 +698,7 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
                         </div>
                         <div
                           className={`group relative rounded-2xl px-4 py-2.5 shadow-sm ${
-                            m.body || m.image_url ? "pr-9" : ""
+                            isInstructor ? "pr-16" : m.body || m.image_url ? "pr-9" : ""
                           } ${
                             isMine
                               ? "bg-accent text-accent-foreground rounded-br-md"
@@ -615,21 +707,39 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
                                 : "bg-card text-foreground border border-border rounded-bl-md"
                           }`}
                         >
-                          {(m.body || m.image_url) && (
-                            <button
-                              type="button"
-                              onClick={() => copyMessageText(m)}
-                              title="메시지 복사"
-                              aria-label="메시지 복사"
-                              className={`absolute top-1.5 right-1.5 inline-flex h-6 w-6 items-center justify-center rounded-full transition ${
-                                isMine
-                                  ? "bg-primary-foreground/15 hover:bg-primary-foreground/25 text-primary-foreground"
-                                  : "bg-background/70 hover:bg-background text-muted-foreground hover:text-foreground"
-                              }`}
-                            >
-                              <Copy className="h-3 w-3" />
-                            </button>
-                          )}
+                          <div className="absolute top-1.5 right-1.5 flex items-center gap-1">
+                            {(m.body || m.image_url) && (
+                              <button
+                                type="button"
+                                onClick={() => copyMessageText(m)}
+                                title="메시지 복사"
+                                aria-label="메시지 복사"
+                                className={`inline-flex h-6 w-6 items-center justify-center rounded-full transition ${
+                                  isMine
+                                    ? "bg-primary-foreground/15 hover:bg-primary-foreground/25 text-primary-foreground"
+                                    : "bg-background/70 hover:bg-background text-muted-foreground hover:text-foreground"
+                                }`}
+                              >
+                                <Copy className="h-3 w-3" />
+                              </button>
+                            )}
+                            {isInstructor && (
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteMessage(m)}
+                                title="메시지 삭제"
+                                aria-label="메시지 삭제"
+                                className={`inline-flex h-6 w-6 items-center justify-center rounded-full transition ${
+                                  isMine
+                                    ? "bg-primary-foreground/15 hover:bg-destructive/70 text-primary-foreground"
+                                    : "bg-background/70 hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+                                }`}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </button>
+                            )}
+                          </div>
+
                           {m.body && (
                             <p className="text-sm whitespace-pre-wrap leading-relaxed break-words">
                               {linkify(m.body)}
