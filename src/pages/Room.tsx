@@ -14,7 +14,6 @@ export type Room = {
   title: string;
   room_name: string;
   host_nickname: string;
-  passcode: string;
   notice: string | null;
   created_at: string;
 };
@@ -115,7 +114,7 @@ const RoomPage = () => {
       setLoading(true);
       const { data: roomData, error: roomErr } = await supabase
         .from("rooms")
-        .select("*")
+        .select("id,title,room_name,host_nickname,notice,created_at")
         .eq("id", s.roomId)
         .maybeSingle();
       if (roomErr || !roomData) {
