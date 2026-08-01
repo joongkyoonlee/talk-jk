@@ -693,21 +693,39 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
                                 : "bg-card text-foreground border border-border rounded-bl-md"
                           }`}
                         >
-                          {(m.body || m.image_url) && (
-                            <button
-                              type="button"
-                              onClick={() => copyMessageText(m)}
-                              title="메시지 복사"
-                              aria-label="메시지 복사"
-                              className={`absolute top-1.5 right-1.5 inline-flex h-6 w-6 items-center justify-center rounded-full transition ${
-                                isMine
-                                  ? "bg-primary-foreground/15 hover:bg-primary-foreground/25 text-primary-foreground"
-                                  : "bg-background/70 hover:bg-background text-muted-foreground hover:text-foreground"
-                              }`}
-                            >
-                              <Copy className="h-3 w-3" />
-                            </button>
-                          )}
+                          <div className="absolute top-1.5 right-1.5 flex items-center gap-1">
+                            {(m.body || m.image_url) && (
+                              <button
+                                type="button"
+                                onClick={() => copyMessageText(m)}
+                                title="메시지 복사"
+                                aria-label="메시지 복사"
+                                className={`inline-flex h-6 w-6 items-center justify-center rounded-full transition ${
+                                  isMine
+                                    ? "bg-primary-foreground/15 hover:bg-primary-foreground/25 text-primary-foreground"
+                                    : "bg-background/70 hover:bg-background text-muted-foreground hover:text-foreground"
+                                }`}
+                              >
+                                <Copy className="h-3 w-3" />
+                              </button>
+                            )}
+                            {isInstructor && (
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteMessage(m)}
+                                title="메시지 삭제"
+                                aria-label="메시지 삭제"
+                                className={`inline-flex h-6 w-6 items-center justify-center rounded-full transition ${
+                                  isMine
+                                    ? "bg-primary-foreground/15 hover:bg-destructive/70 text-primary-foreground"
+                                    : "bg-background/70 hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+                                }`}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </button>
+                            )}
+                          </div>
+
                           {m.body && (
                             <p className="text-sm whitespace-pre-wrap leading-relaxed break-words">
                               {linkify(m.body)}
