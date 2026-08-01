@@ -605,17 +605,31 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
                         key={item.id}
                         className="group relative rounded-2xl border border-accent/40 bg-gold-soft/20 p-4"
                       >
-                        {(m.body || m.image_url) && (
-                          <button
-                            type="button"
-                            onClick={() => copyMessageText(m)}
-                            title="메시지 복사"
-                            aria-label="메시지 복사"
-                            className="absolute top-2 right-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-background/70 text-muted-foreground hover:text-foreground hover:bg-background transition"
-                          >
-                            <Copy className="h-3.5 w-3.5" />
-                          </button>
-                        )}
+                        <div className="absolute top-2 right-2 flex items-center gap-1">
+                          {(m.body || m.image_url) && (
+                            <button
+                              type="button"
+                              onClick={() => copyMessageText(m)}
+                              title="메시지 복사"
+                              aria-label="메시지 복사"
+                              className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-background/70 text-muted-foreground hover:text-foreground hover:bg-background transition"
+                            >
+                              <Copy className="h-3.5 w-3.5" />
+                            </button>
+                          )}
+                          {isInstructor && (
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteMessage(m)}
+                              title="메시지 삭제"
+                              aria-label="메시지 삭제"
+                              className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-background/70 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          )}
+                        </div>
+
                         <div className="flex items-center justify-between gap-2 flex-wrap">
                           <div className="flex items-center gap-2">
                             <Megaphone className="h-4 w-4 text-accent" />
