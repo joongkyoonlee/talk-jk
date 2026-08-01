@@ -255,7 +255,7 @@ const RoomPage = () => {
               <div className="flex items-center gap-2 rounded-2xl border border-primary/30 bg-primary/5 px-4 py-2">
                 <span className="text-[10px] uppercase tracking-widest text-muted-foreground">패스코드</span>
                 <span className="font-mono text-xl md:text-2xl font-semibold tracking-[0.3em] text-primary">
-                  {room?.passcode}
+                  {session.passcode}
                 </span>
               </div>
               <div className="flex items-center gap-1 rounded-full bg-muted/60 p-1">
