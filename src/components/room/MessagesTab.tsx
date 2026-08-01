@@ -441,8 +441,12 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
   async function handleDeleteMessage(m: MessageRow) {
     if (!isInstructor) return;
     if (!window.confirm("이 메시지를 삭제할까요? 되돌릴 수 없습니다.")) return;
-    const { error } = await supabase.from("messages").delete().eq("id", m.id);
-    if (error) return toast({ title: "삭제 실패", description: error.message });
+    const { error } = await supabase.rpc("delete_room_message", {
+      p_room_id: room.id,
+      p_passcode: session.passcode,
+      p_message_id: m.id,
+    });
+    if (error) return toast({ title: "삭제 실패", description: "권한이 없거나 삭제에 실패했습니다." });
     toast({ title: "메시지를 삭제했습니다." });
   }
 
