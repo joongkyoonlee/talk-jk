@@ -486,7 +486,8 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-          )}
+          </div>
+          {isInstructor && (
           {isInstructor && (
             <Dialog open={noticeOpen} onOpenChange={setNoticeOpen}>
               <DialogTrigger asChild>
