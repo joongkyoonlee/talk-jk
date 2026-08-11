@@ -488,7 +488,6 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
             </div>
           </div>
           {isInstructor && (
-          {isInstructor && (
             <Dialog open={noticeOpen} onOpenChange={setNoticeOpen}>
               <DialogTrigger asChild>
                 <button
