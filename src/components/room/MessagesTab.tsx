@@ -454,7 +454,7 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
             <h3 className="font-serif text-lg">실시간 메시지</h3>
             <span className="text-xs text-muted-foreground">· {messages.length}건</span>
           </div>
-          {isInstructor && (
+          <div className="flex items-center gap-2">
             <div className="flex items-center gap-2">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -486,7 +486,7 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-          )}
+          </div>
           {isInstructor && (
             <Dialog open={noticeOpen} onOpenChange={setNoticeOpen}>
               <DialogTrigger asChild>
