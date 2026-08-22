@@ -259,6 +259,18 @@ export type Database = {
         }
         Returns: undefined
       }
+      create_room: {
+        Args: { p_host_nickname: string; p_room_name: string; p_title: string }
+        Returns: {
+          created_at: string
+          host_nickname: string
+          id: string
+          notice: string
+          passcode: string
+          room_name: string
+          title: string
+        }[]
+      }
       create_room_poll: {
         Args: {
           p_options: string[]
@@ -275,6 +287,17 @@ export type Database = {
       delete_room_poll: {
         Args: { p_passcode: string; p_poll_id: string; p_room_id: string }
         Returns: undefined
+      }
+      get_room: {
+        Args: { p_passcode: string; p_room_id: string }
+        Returns: {
+          created_at: string
+          host_nickname: string
+          id: string
+          notice: string
+          room_name: string
+          title: string
+        }[]
       }
       join_room: {
         Args: { p_passcode: string }
