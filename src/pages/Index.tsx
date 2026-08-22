@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { loadSession, newAnonymousName, newClientId, newPasscode, saveSession } from "@/lib/session";
+import TopSocialBar from "@/components/TopSocialBar";
 import jtalkLogo from "@/assets/jtalk-logo.png";
 
 const Index = () => {

@@ -4,6 +4,7 @@ import { LogOut, MessageSquare, Lightbulb, BarChart3, Users } from "lucide-react
 import { supabase } from "@/integrations/supabase/client";
 import { loadSession, saveSession, type RoomSession } from "@/lib/session";
 import { toast } from "@/hooks/use-toast";
+import TopSocialBar from "@/components/TopSocialBar";
 import MessagesTab from "@/components/room/MessagesTab";
 import OpinionsTab from "@/components/room/OpinionsTab";
 import PollsTab from "@/components/room/PollsTab";
