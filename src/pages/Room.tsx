@@ -114,9 +114,7 @@ const RoomPage = () => {
     async (s: RoomSession) => {
       setLoading(true);
       const { data: roomData, error: roomErr } = await supabase
-        .from("rooms")
-        .select("id,title,room_name,host_nickname,notice,created_at")
-        .eq("id", s.roomId)
+        .rpc("get_room", { p_room_id: s.roomId, p_passcode: s.passcode })
         .maybeSingle();
       if (roomErr || !roomData) {
         toast({ title: "방을 불러올 수 없습니다.", description: "세션을 종료합니다." });
