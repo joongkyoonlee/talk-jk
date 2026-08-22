@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { loadSession, newAnonymousName, newClientId, newPasscode, saveSession } from "@/lib/session";
+import TopSocialBar from "@/components/TopSocialBar";
 import jtalkLogo from "@/assets/jtalk-logo.png";
 
 const Index = () => {
@@ -77,6 +78,8 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-hero">
+      <TopSocialBar />
+
       {/* Top executive ribbon */}
       <div className="border-b border-border/60 bg-background/60 backdrop-blur">
         <div className="container flex h-9 items-center justify-between text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
