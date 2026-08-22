@@ -77,6 +77,8 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-hero">
+      <TopSocialBar />
+
       {/* Top executive ribbon */}
       <div className="border-b border-border/60 bg-background/60 backdrop-blur">
         <div className="container flex h-9 items-center justify-between text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
