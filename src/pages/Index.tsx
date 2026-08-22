@@ -30,25 +30,23 @@ const Index = () => {
       return;
     }
     setCreating(true);
-    const passcode = newPasscode();
     const { data, error } = await supabase
-      .from("rooms")
-      .insert({ title, room_name, host_nickname, passcode, notice: "" })
-      .select("id,title,room_name,host_nickname,notice,created_at")
-      .single();
+      .rpc("create_room", { p_title: title, p_room_name: room_name, p_host_nickname: host_nickname })
+      .maybeSingle();
     setCreating(false);
     if (error || !data) {
       toast({ title: "방 생성 실패", description: error?.message });
       return;
     }
+    const created = data as { id: string; passcode: string };
     saveSession({
-      roomId: data.id,
-      passcode,
+      roomId: created.id,
+      passcode: created.passcode,
       nickname: host_nickname,
       role: "instructor",
       clientId: newClientId(),
     });
-    toast({ title: `방이 생성되었습니다`, description: `패스코드 ${passcode}` });
+    toast({ title: `방이 생성되었습니다`, description: `패스코드 ${created.passcode}` });
     navigate("/room");
   }
 
