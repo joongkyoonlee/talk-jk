@@ -206,11 +206,33 @@ const RoomPage = () => {
       .subscribe();
 
     channelRef.current = ch;
+
+    // Fallback: periodic refresh in case realtime is blocked (proxy/in-app browser)
+    const refresh = async () => {
+      const [msgRes, opRes] = await Promise.all([
+        supabase.from("messages").select("*").eq("room_id", session.roomId).order("created_at", { ascending: true }),
+        supabase.from("opinions").select("*").eq("room_id", session.roomId).order("created_at", { ascending: false }),
+      ]);
+      if (msgRes.data) setMessages(msgRes.data as MessageRow[]);
+      if (opRes.data) setOpinions(opRes.data as OpinionRow[]);
+      reloadPolls(session.roomId);
+    };
+    const interval = window.setInterval(refresh, 4000);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") refresh();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onVisible);
+
     return () => {
+      window.clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onVisible);
       supabase.removeChannel(ch);
       channelRef.current = null;
     };
   }, [session, loadAll, reloadPolls]);
+
 
   const isInstructor = session?.role === "instructor";
 
