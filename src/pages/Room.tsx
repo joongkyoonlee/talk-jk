@@ -214,6 +214,13 @@ const RoomPage = () => {
 
   const isInstructor = session?.role === "instructor";
 
+  const handleMessageSent = useCallback((message: MessageRow) => {
+    setMessages((current) => {
+      if (current.some((item) => item.id === message.id)) return current;
+      return [...current, message].sort((a, b) => a.created_at.localeCompare(b.created_at));
+    });
+  }, []);
+
   const handleLeave = () => {
     saveSession(null);
     setSession(null);
@@ -222,12 +229,21 @@ const RoomPage = () => {
   const tabContent = useMemo(() => {
     if (!session || !room) return null;
     if (tab === "messages")
-      return <MessagesTab room={room} messages={messages} polls={polls} session={session} isInstructor={isInstructor} />;
+      return (
+        <MessagesTab
+          room={room}
+          messages={messages}
+          polls={polls}
+          session={session}
+          isInstructor={isInstructor}
+          onMessageSent={handleMessageSent}
+        />
+      );
     if (tab === "opinions") return <OpinionsTab opinions={opinions} session={session} />;
     if (tab === "polls")
       return <PollsTab polls={polls} session={session} isInstructor={isInstructor} roomId={room.id} />;
     return <ParticipantsTab session={session} isInstructor={isInstructor} />;
-  }, [tab, session, room, messages, opinions, polls, isInstructor]);
+  }, [tab, session, room, messages, opinions, polls, isInstructor, handleMessageSent]);
 
   if (!session) return null;
 
