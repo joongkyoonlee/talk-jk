@@ -314,6 +314,7 @@ export type Database = {
         Args: { p_passcode: string; p_room_id: string }
         Returns: boolean
       }
+      room_exists: { Args: { p_room_id: string }; Returns: boolean }
       set_poll_closed: {
         Args: {
           p_closed: boolean
