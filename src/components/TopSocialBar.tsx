@@ -4,6 +4,7 @@ const links = [
   { href: "https://joongkyoonlee.org", icon: Globe, label: "joongkyoonlee.org" },
   { href: "https://www.youtube.com/@joongkyoonlee3757", icon: Youtube, label: "YouTube" },
   { href: "https://www.instagram.com/joongkyoon/", icon: Instagram, label: "Instagram" },
+  { href: "https://cdsa.kr/", icon: Globe, label: "KDSA" },
 ];
 
 export default function TopSocialBar({ bordered = true }: { bordered?: boolean }) {
