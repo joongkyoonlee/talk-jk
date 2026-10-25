@@ -1,7 +1,7 @@
-import { Home, UserRound, MessageSquareText } from "lucide-react";
+import { Home, UserRound, Sparkles, MessageSquareText } from "lucide-react";
 
 type Site = {
-  key: "home" | "profile" | "jtalk";
+  key: "home" | "profile" | "intro" | "jtalk";
   label: string;
   href: string;
   icon: typeof Home;
