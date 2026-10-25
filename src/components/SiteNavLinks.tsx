@@ -1,7 +1,7 @@
-import { Home, UserRound, MessageSquareText } from "lucide-react";
+import { Home, UserRound, Sparkles, MessageSquareText } from "lucide-react";
 
 type Site = {
-  key: "home" | "profile" | "jtalk";
+  key: "home" | "profile" | "intro" | "jtalk";
   label: string;
   href: string;
   icon: typeof Home;
@@ -21,6 +21,13 @@ const sites: Site[] = [
     label: "전문가 프로필",
     href: "https://joongkyoonlee.org/",
     icon: UserRound,
+    external: true,
+  },
+  {
+    key: "intro",
+    label: "AI·데이터·바이브코딩 소개",
+    href: "https://jklee.lovable.app/",
+    icon: Sparkles,
     external: true,
   },
   {
