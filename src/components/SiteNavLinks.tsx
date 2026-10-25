@@ -24,6 +24,13 @@ const sites: Site[] = [
     external: true,
   },
   {
+    key: "intro",
+    label: "AI·데이터·바이브코딩 소개",
+    href: "https://jklee.lovable.app/",
+    icon: Sparkles,
+    external: true,
+  },
+  {
     key: "jtalk",
     label: "J talk",
     href: "/",
