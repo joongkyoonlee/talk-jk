@@ -377,7 +377,19 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
       toast({ title: "전송 실패", description: error.message });
       return;
     }
-    if (sentMessage) onMessageSent(sentMessage as MessageRow);
+    onMessageSent({ id: newId,
+        room_id: room.id,
+        nickname: session.nickname,
+        role: session.role,
+        client_id: session.clientId,
+        body: body.trim() || null,
+        message_type: "general",
+        image_url,
+        file_url,
+        file_name,
+        file_size,
+        file_mime,
+        is_system: false, created_at: new Date().toISOString() } as MessageRow);
     setBody("");
     setFile(null);
     setAttachment(null);
@@ -440,7 +452,14 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
       });
     setSavingNotice(false);
     if (error) return toast({ title: "공지 발송 실패", description: error.message });
-    if (sentMessage) onMessageSent(sentMessage as MessageRow);
+    onMessageSent({ id: newId,
+        room_id: room.id,
+        nickname: session.nickname,
+        role: session.role,
+        client_id: session.clientId,
+        body: text,
+        message_type: "announcement",
+        is_system: false, created_at: new Date().toISOString() } as MessageRow);
     toast({ title: "공지를 메시지로 발송했습니다." });
   }
 
