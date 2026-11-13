@@ -354,9 +354,11 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
       file_size = attachment.size;
       file_mime = attachment.type || "application/octet-stream";
     }
-    const { data: sentMessage, error } = await supabase
+    const newId = crypto.randomUUID();
+    const { error } = await supabase
       .from("messages")
       .insert({
+        id: newId,
         room_id: room.id,
         nickname: session.nickname,
         role: session.role,
@@ -369,15 +371,25 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
         file_size,
         file_mime,
         is_system: false,
-      })
-      .select("*")
-      .single();
+      });
     setSending(false);
     if (error) {
       toast({ title: "전송 실패", description: error.message });
       return;
     }
-    if (sentMessage) onMessageSent(sentMessage as MessageRow);
+    onMessageSent({ id: newId,
+        room_id: room.id,
+        nickname: session.nickname,
+        role: session.role,
+        client_id: session.clientId,
+        body: body.trim() || null,
+        message_type: "general",
+        image_url,
+        file_url,
+        file_name,
+        file_size,
+        file_mime,
+        is_system: false, created_at: new Date().toISOString() } as MessageRow);
     setBody("");
     setFile(null);
     setAttachment(null);
@@ -425,9 +437,11 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
       return;
     }
     setSavingNotice(true);
-    const { data: sentMessage, error } = await supabase
+    const newId = crypto.randomUUID();
+    const { error } = await supabase
       .from("messages")
       .insert({
+        id: newId,
         room_id: room.id,
         nickname: session.nickname,
         role: session.role,
@@ -435,12 +449,17 @@ export default function MessagesTab({ room, messages, polls, session, isInstruct
         body: text,
         message_type: "announcement",
         is_system: false,
-      })
-      .select("*")
-      .single();
+      });
     setSavingNotice(false);
     if (error) return toast({ title: "공지 발송 실패", description: error.message });
-    if (sentMessage) onMessageSent(sentMessage as MessageRow);
+    onMessageSent({ id: newId,
+        room_id: room.id,
+        nickname: session.nickname,
+        role: session.role,
+        client_id: session.clientId,
+        body: text,
+        message_type: "announcement",
+        is_system: false, created_at: new Date().toISOString() } as MessageRow);
     toast({ title: "공지를 메시지로 발송했습니다." });
   }
 
