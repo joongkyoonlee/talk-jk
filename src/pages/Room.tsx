@@ -84,7 +84,7 @@ const RoomPage = () => {
     }
   }, [session, navigate]);
 
-  const reloadPolls = useCallback(async (roomId: string) => {
+  const reloadPolls = useCallback(async (roomId: string, passcode: string) => {
     const { data: pollsData } = await supabase
       .from("polls")
       .select("*")
@@ -97,7 +97,7 @@ const RoomPage = () => {
         ? supabase.from("poll_options").select("*").in("poll_id", ids).order("created_at")
         : Promise.resolve({ data: [] as PollOption[] } as any),
       ids.length
-        ? supabase.from("poll_votes").select("*").in("poll_id", ids)
+        ? supabase.rpc("get_room_poll_votes", { p_room_id: roomId, p_passcode: passcode })
         : Promise.resolve({ data: [] as PollVote[] } as any),
     ]);
     const opts = (optsRes.data || []) as PollOption[];
@@ -125,12 +125,12 @@ const RoomPage = () => {
       setRoom(roomData as Room);
 
       const [msgRes, opRes] = await Promise.all([
-        supabase.from("messages").select("*").eq("room_id", s.roomId).order("created_at", { ascending: true }),
-        supabase.from("opinions").select("*").eq("room_id", s.roomId).order("created_at", { ascending: false }),
+        supabase.rpc("get_room_messages", { p_room_id: s.roomId, p_passcode: s.passcode }),
+        supabase.rpc("get_room_opinions", { p_room_id: s.roomId, p_passcode: s.passcode }),
       ]);
       setMessages((msgRes.data || []) as MessageRow[]);
       setOpinions((opRes.data || []) as OpinionRow[]);
-      await reloadPolls(s.roomId);
+      await reloadPolls(s.roomId, s.passcode);
       setLoading(false);
     },
     [reloadPolls],
@@ -196,12 +196,12 @@ const RoomPage = () => {
           });
         },
       )
-      .on("postgres_changes", { event: "*", schema: "public", table: "polls" }, () => reloadPolls(session.roomId))
+      .on("postgres_changes", { event: "*", schema: "public", table: "polls" }, () => reloadPolls(session.roomId, session.passcode))
       .on("postgres_changes", { event: "*", schema: "public", table: "poll_options" }, () =>
-        reloadPolls(session.roomId),
+        reloadPolls(session.roomId, session.passcode),
       )
       .on("postgres_changes", { event: "*", schema: "public", table: "poll_votes" }, () =>
-        reloadPolls(session.roomId),
+        reloadPolls(session.roomId, session.passcode),
       )
       .subscribe();
 
@@ -210,12 +210,12 @@ const RoomPage = () => {
     // Fallback: periodic refresh in case realtime is blocked (proxy/in-app browser)
     const refresh = async () => {
       const [msgRes, opRes] = await Promise.all([
-        supabase.from("messages").select("*").eq("room_id", session.roomId).order("created_at", { ascending: true }),
-        supabase.from("opinions").select("*").eq("room_id", session.roomId).order("created_at", { ascending: false }),
+        supabase.rpc("get_room_messages", { p_room_id: session.roomId, p_passcode: session.passcode }),
+        supabase.rpc("get_room_opinions", { p_room_id: session.roomId, p_passcode: session.passcode }),
       ]);
       if (msgRes.data) setMessages(msgRes.data as MessageRow[]);
       if (opRes.data) setOpinions(opRes.data as OpinionRow[]);
-      reloadPolls(session.roomId);
+      reloadPolls(session.roomId, session.passcode);
     };
     const interval = window.setInterval(refresh, 4000);
     const onVisible = () => {
