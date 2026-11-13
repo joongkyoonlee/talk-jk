@@ -299,6 +299,66 @@ export type Database = {
           title: string
         }[]
       }
+      get_room_messages: {
+        Args: { p_passcode: string; p_room_id: string }
+        Returns: {
+          body: string | null
+          client_id: string | null
+          created_at: string
+          file_mime: string | null
+          file_name: string | null
+          file_size: number | null
+          file_url: string | null
+          id: string
+          image_url: string | null
+          is_system: boolean
+          message_type: string
+          nickname: string
+          role: string
+          room_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "messages"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      get_room_opinions: {
+        Args: { p_passcode: string; p_room_id: string }
+        Returns: {
+          body: string
+          category: string | null
+          client_id: string | null
+          created_at: string
+          id: string
+          nickname: string | null
+          role: string
+          room_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "opinions"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      get_room_poll_votes: {
+        Args: { p_passcode: string; p_room_id: string }
+        Returns: {
+          created_at: string
+          id: string
+          poll_id: string
+          poll_option_id: string
+          voter_client_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "poll_votes"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       join_room: {
         Args: { p_passcode: string }
         Returns: {
